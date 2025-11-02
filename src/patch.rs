@@ -4,6 +4,7 @@
 //! and optional replacement text. Patches can be created from line-based positions (for
 //! compatibility with tools like cargo diagnostics) or directly from character indices.
 
+#[cfg(feature = "facet")]
 use facet::Facet;
 use ropey::Rope;
 
@@ -55,7 +56,8 @@ use ropey::Rope;
 /// replace.apply(&mut rope).unwrap();
 /// assert_eq!(rope.to_string(), "hello rust");
 /// ```
-#[derive(Debug, Clone, Facet)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "facet", derive(Facet))]
 pub struct Patch {
     /// File path this patch applies to.
     pub file: String,

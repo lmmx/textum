@@ -1,11 +1,11 @@
 [[bin]]
 name = "textum"
-path = "src/main.rs"
+path = "src/cli.rs"
 
 [dependencies]
-facet = "0.30.0"
+facet = { optional = true, version = "0.30.0" }
 facet-args = { optional = true, version = "0.30.0" }
-facet-json = "0.30.0"
+facet-json = { optional = true, version = "0.30.0" }
 ropey = "1.6"
 
 [package]
@@ -59,4 +59,6 @@ unsafe_code = "forbid"
 # missing_docs = "deny"
 
 [features]
-cli = ["dep:facet-args"]
+cli = ["dep:facet-args", "json"]
+facet = ["dep:facet"]
+json = ["dep:facet-json", "facet"]

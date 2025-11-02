@@ -14,7 +14,7 @@ doctest *args:
     cargo test --doc {{args}}
 
 test *args:
-    cargo nextest run {{args}}
+    cargo nextest run {{args}} --all-targets --all-features
 
 test-ci *args:
     #!/usr/bin/env -S echo-comment --color bright-green
