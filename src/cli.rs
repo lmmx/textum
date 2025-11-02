@@ -31,6 +31,24 @@ pub mod inner {
         /// Show verbose output
         #[facet(named, short = 'v')]
         verbose: bool,
+
+        /// Show this help message
+        #[facet(named, short = 'h')]
+        help: bool,
+    }
+
+    fn print_usage() {
+        println!("Usage: textum [OPTIONS] [PATCH_FILE]");
+        println!();
+        println!("Apply syntactic patches to source files with char-level granularity.");
+        println!();
+        println!("Arguments:");
+        println!("  [PATCH_FILE]  Path to JSON file containing patches (reads from stdin if not provided)");
+        println!();
+        println!("Options:");
+        println!("  -n, --dry-run  Preview changes without writing to disk");
+        println!("  -v, --verbose  Show verbose output");
+        println!("  -h, --help     Show this help message");
     }
 
     #[cfg(feature = "cli")]
@@ -50,6 +68,11 @@ pub mod inner {
     pub fn main() -> io::Result<()> {
         let args: Args = facet_args::from_std_args()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, format!("{e}")))?;
+
+        if args.help {
+            print_usage();
+            std::process::exit(0);
+        }
 
         // Read input from file or stdin
         let input = if let Some(path) = args.patch_file {
