@@ -128,6 +128,22 @@ impl std::fmt::Display for PatchError {
 
 impl std::error::Error for PatchError {}
 
+impl From<std::io::Error> for PatchError {
+    fn from(e: std::io::Error) -> Self {
+        Self::IoError(e)
+    }
+}
+
+#[cfg(feature = "json")]
+impl From<facet_json::DeserError<'_>> for PatchError {
+    fn from(e: facet_json::DeserError<'_>) -> Self {
+        Self::IoError(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            e.to_string(),
+        ))
+    }
+}
+
 impl Patch {
     /// Apply this patch to a rope in-place.
     ///
