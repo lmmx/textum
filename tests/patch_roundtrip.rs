@@ -14,7 +14,9 @@ fn patch_replaces_text_in_tempfile() {
         file: temp.path().to_string_lossy().into(),
         range: (6, 11), // "Louis"
         replacement: Some("World".into()),
+        #[cfg(feature = "symbol_path")]
         symbol_path: None,
+        #[cfg(feature = "line_tol")]
         max_line_drift: None,
     };
 

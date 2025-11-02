@@ -26,7 +26,9 @@ use ropey::Rope;
 ///     file: "main.rs".to_string(),
 ///     range: (5, 11),
 ///     replacement: None,
+///     #[cfg(feature = "symbol_path")]
 ///     symbol_path: None,
+///     #[cfg(feature = "line_tol")]
 ///     max_line_drift: None,
 /// };
 /// delete.apply(&mut rope).unwrap();
@@ -38,7 +40,9 @@ use ropey::Rope;
 ///     file: "main.rs".to_string(),
 ///     range: (5, 5),
 ///     replacement: Some(" ".into()),
+///     #[cfg(feature = "symbol_path")]
 ///     symbol_path: None,
+///     #[cfg(feature = "line_tol")]
 ///     max_line_drift: None,
 /// };
 /// insert.apply(&mut rope).unwrap();
@@ -50,7 +54,9 @@ use ropey::Rope;
 ///     file: "main.rs".to_string(),
 ///     range: (6, 11),
 ///     replacement: Some("rust".into()),
+///     #[cfg(feature = "symbol_path")]
 ///     symbol_path: None,
+///     #[cfg(feature = "line_tol")]
 ///     max_line_drift: None,
 /// };
 /// replace.apply(&mut rope).unwrap();
@@ -84,6 +90,7 @@ pub struct Patch {
     /// have shifted but the syntactic context remains identifiable. For example,
     /// `vec!["mod foo", "fn bar"]` identifies a function bar inside module foo.
     #[cfg_attr(feature = "facet", facet(default))]
+    #[cfg(feature = "symbol_path")]
     pub symbol_path: Option<Vec<String>>,
 
     /// Optional (nullable and non-required) maximum line drift for fuzzy matching.
@@ -92,6 +99,7 @@ pub struct Patch {
     /// to find a matching context. This allows patches to remain valid even when unrelated
     /// code changes have shifted line numbers.
     #[cfg_attr(feature = "facet", facet(default))]
+    #[cfg(feature = "line_tol")]
     pub max_line_drift: Option<usize>,
 }
 
@@ -143,7 +151,9 @@ impl Patch {
     ///     file: "test.txt".to_string(),
     ///     range: (6, 11),
     ///     replacement: Some("rust".into()),
+    ///     #[cfg(feature = "symbol_path")]
     ///     symbol_path: None,
+    ///     #[cfg(feature = "line_tol")]
     ///     max_line_drift: None,
     /// };
     ///
@@ -222,7 +232,9 @@ impl Patch {
             file,
             range: (start_char, end_char),
             replacement,
+            #[cfg(feature = "symbol_path")]
             symbol_path: None,
+            #[cfg(feature = "line_tol")]
             max_line_drift: None,
         }
     }

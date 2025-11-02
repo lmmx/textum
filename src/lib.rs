@@ -16,13 +16,19 @@
 //!     file: "test.txt".to_string(),
 //!     range: (6, 11),
 //!     replacement: Some("rust".into()),
+//!     #[cfg(feature = "symbol_path")]
 //!     symbol_path: None,
+//!     #[cfg(feature = "line_tol")]
 //!     max_line_drift: None,
 //! };
 //!
 //! patch.apply(&mut rope).unwrap();
 //! assert_eq!(rope.to_string(), "hello rust");
 //! ```
+//!
+//! A `Patch` compiled with the `facet` feature is decorated with the `facet::Facet` derive macro
+//! which means you deserialise from JSON, where the optional fields `symbol_path` and
+//! `max_line_drift` are not required.
 #![allow(clippy::multiple_crate_versions)]
 
 pub mod composer;

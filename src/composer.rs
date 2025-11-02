@@ -25,7 +25,9 @@ use std::collections::HashMap;
 ///     file: "tests/fixtures/sample.txt".to_string(),
 ///     range: (0, 5),
 ///     replacement: Some("goodbye".into()),
+///     #[cfg(feature = "symbol_path")]
 ///     symbol_path: None,
+///     #[cfg(feature = "line_tol")]
 ///     max_line_drift: None,
 /// });
 ///
@@ -33,7 +35,9 @@ use std::collections::HashMap;
 ///     file: "tests/fixtures/sample.txt".to_string(),
 ///     range: (6, 11),
 ///     replacement: Some("rust".into()),
+///     #[cfg(feature = "symbol_path")]
 ///     symbol_path: None,
+///     #[cfg(feature = "line_tol")]
 ///     max_line_drift: None,
 /// });
 ///
@@ -77,7 +81,9 @@ impl PatchSet {
     ///     file: "main.rs".to_string(),
     ///     range: (10, 15),
     ///     replacement: Some("hello".into()),
+    ///     #[cfg(feature = "symbol_path")]
     ///     symbol_path: None,
+    ///     #[cfg(feature = "line_tol")]
     ///     max_line_drift: None,
     /// });
     /// ```
@@ -110,7 +116,9 @@ impl PatchSet {
     ///     file: "tests/fixtures/sample.txt".to_string(),
     ///     range: (6, 11),
     ///     replacement: Some("rust".into()),
+    ///     #[cfg(feature = "symbol_path")]
     ///     symbol_path: None,
+    ///     #[cfg(feature = "line_tol")]
     ///     max_line_drift: None,
     /// });
     ///

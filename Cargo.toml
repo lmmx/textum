@@ -59,7 +59,14 @@ unsafe_code = "forbid"
 # missing_docs = "deny"
 
 [features]
-cli = ["dep:facet-args", "json"]
+# --- Patch field gating features
+line_tol = []    # max_line_drift field
+symbol_path = [] # symbol_path field
+
+all-patch-fields = ["line_tol", "symbol_path"]
+
+# --- Dependency features
+cli = ["all-patch-fields", "dep:facet-args", "json"]
 facet = ["dep:facet"]
 json = ["dep:facet-json", "facet"]
 
