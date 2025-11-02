@@ -1,0 +1,62 @@
+[[bin]]
+name = "textum"
+path = "src/main.rs"
+
+[dependencies]
+facet = "0.30.0"
+facet-args = { optional = true, version = "0.30.0" }
+facet-json = "0.30.0"
+ropey = "1.6"
+
+[package]
+authors = ["Louis Maddox <louismmx@gmail.com>"]
+categories = ["command-line-utilities", "development-tools"]
+description = "A syntactic patching library with char-level granularity"
+documentation = "https://docs.rs/textum/"
+edition = "2021"
+homepage = "https://github.com/lmmx/textum"
+keywords = ["diff", "patch", "syntax", "tree-sitter"]
+license = "MIT"
+name = "textum"
+readme = "README.md"
+repository = "https://github.com/lmmx/textum"
+rust-version = "1.90"
+version = "0.0.0"
+
+[package.metadata.binstall]
+pkg-fmt = "tgz"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-{ target }-v{ version }.tar.gz"
+
+[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]
+pkg-fmt = "zip"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-aarch64-pc-windows-msvc-v{ version }.zip"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-x86_64-pc-windows-msvc-v{ version }.zip"
+
+[profile.dev]
+codegen-units = 256
+debug = false
+lto = false
+opt-level = 0
+strip = "debuginfo"
+
+[profile.release]
+codegen-units = 1
+debug = false
+lto = "thin"
+opt-level = 2
+strip = "symbols"
+
+[lints.clippy]
+all = "deny"
+cargo = "deny"
+pedantic = "deny"
+
+[lints.rust]
+unsafe_code = "forbid"
+# missing_docs = "deny"
+
+[features]
+cli = ["dep:facet-args"]
