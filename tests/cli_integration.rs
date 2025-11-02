@@ -19,9 +19,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [6, 11],
-                "replacement": "World",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": "World"
             }}]"#,
             source_file.display()
         );
@@ -50,9 +48,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [0, 2],
-                "replacement": "Hello",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": "Hello"
             }}]"#,
             source_file.display()
         );
@@ -78,9 +74,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [0, 5],
-                "replacement": "Please",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": "Please"
             }}]"#,
             source_file.display()
         );
@@ -108,9 +102,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [0, 4],
-                "replacement": "best",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": "best"
             }}]"#,
             source_file.display()
         );
@@ -137,16 +129,12 @@ mod cli_integration {
                 {{
                     "file": "{}",
                     "range": [0, 3],
-                    "replacement": "baz",
-                    "symbol_path": null,
-                    "max_line_drift": null
+                    "replacement": "baz"
                 }},
                 {{
                     "file": "{}",
                     "range": [0, 3],
-                    "replacement": "qux",
-                    "symbol_path": null,
-                    "max_line_drift": null
+                    "replacement": "qux"
                 }}
             ]"#,
             file1.display(),
@@ -191,9 +179,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [6, 11],
-                "replacement": "",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": ""
             }}]"#,
             source_file.display()
         );
@@ -219,9 +205,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [5, 5],
-                "replacement": " ",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": " "
             }}]"#,
             source_file.display()
         );
@@ -246,9 +230,7 @@ mod cli_integration {
             r#"[{{
                 "file": "{}",
                 "range": [0, 6],
-                "replacement": "after",
-                "symbol_path": null,
-                "max_line_drift": null
+                "replacement": "after"
             }}]"#,
             source_file.display()
         );

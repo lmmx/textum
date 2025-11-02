@@ -71,25 +71,27 @@ pub struct Patch {
     /// Indices are 0-based and count Unicode scalar values, not bytes.
     pub range: (usize, usize),
 
-    /// Replacement text to insert at the start of the range.
+    /// Replacement text to insert at the start of the range (nullable, required).
     ///
     /// If None, this is a pure deletion. If Some, the range is removed and this text
     /// is inserted in its place.
     // pub replacement: Option<Text>,
     pub replacement: Option<String>,
 
-    /// Optional symbol path for robust positioning.
+    /// Optional (nullable and non-required) symbol path for robust positioning.
     ///
     /// When provided, allows the patch to be relocated if the exact character positions
     /// have shifted but the syntactic context remains identifiable. For example,
     /// `vec!["mod foo", "fn bar"]` identifies a function bar inside module foo.
+    #[facet(default)]
     pub symbol_path: Option<Vec<String>>,
 
-    /// Optional maximum line drift for fuzzy matching.
+    /// Optional (nullable and non-required) maximum line drift for fuzzy matching.
     ///
     /// When provided, the patch will search within this many lines of the target position
     /// to find a matching context. This allows patches to remain valid even when unrelated
     /// code changes have shifted line numbers.
+    #[facet(default)]
     pub max_line_drift: Option<usize>,
 }
 
