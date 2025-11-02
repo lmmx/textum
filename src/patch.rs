@@ -83,7 +83,7 @@ pub struct Patch {
     /// When provided, allows the patch to be relocated if the exact character positions
     /// have shifted but the syntactic context remains identifiable. For example,
     /// `vec!["mod foo", "fn bar"]` identifies a function bar inside module foo.
-    #[facet(default)]
+    #[cfg_attr(feature = "facet", facet(default))]
     pub symbol_path: Option<Vec<String>>,
 
     /// Optional (nullable and non-required) maximum line drift for fuzzy matching.
@@ -91,7 +91,7 @@ pub struct Patch {
     /// When provided, the patch will search within this many lines of the target position
     /// to find a matching context. This allows patches to remain valid even when unrelated
     /// code changes have shifted line numbers.
-    #[facet(default)]
+    #[cfg_attr(feature = "facet", facet(default))]
     pub max_line_drift: Option<usize>,
 }
 
