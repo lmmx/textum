@@ -11,6 +11,7 @@
 //! Modified files are written back to disk unless `--dry-run` is specified.
 #![allow(clippy::multiple_crate_versions)]
 
+/// Command-line interface for applying patches from JSON.
 #[cfg(feature = "cli")]
 pub mod inner {
     use facet::Facet;
@@ -125,8 +126,10 @@ pub mod inner {
     }
 }
 
+/// Hint replacement CLI for when the cli module is used without building the cli feature.
 #[cfg(not(feature = "cli"))]
 pub mod inner {
+    /// Provide a hint to the user that they did not build this crate with the cli feature.
     #[cfg(not(feature = "cli"))]
     pub fn main() {
         eprintln!("Please build with the cli feature to run the CLI");

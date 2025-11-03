@@ -6,9 +6,7 @@
 //! inclusive of the boundary or not (this will depend on context and making the wrong assumption
 //! could be a major form of error).
 
-/// Snippet-based text selection and boundary specification.
 pub mod snippet;
-/// Target specifications for boundary matching.
 pub mod target;
 
 pub use snippet::*;

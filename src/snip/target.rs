@@ -1,14 +1,23 @@
+//! Target specifications for boundary matching.
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone)]
+/// Defines what text position or pattern a boundary matches.
 pub enum Target {
+    /// An exact string to match.
     Literal(String),
     #[cfg(feature = "regex")]
+    /// Matches a regular expression pattern.
     Pattern(regex::Regex),
+    /// Matches an absolute line number.
     Line(usize),
+    /// Matches an absolute character index.
     Char(usize),
+    /// Matches a line and column coordinate.
     Position {
+        /// One-indexed line number.
         line: usize,
+        /// One-indexed column number.
         col: usize,
     },
 }
