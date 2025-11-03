@@ -587,6 +587,7 @@ dependencies = [
  "facet-args",
  "facet-json",
  "predicates",
+ "regex",
  "ropey",
  "tempfile",
  "tree-sitter",
