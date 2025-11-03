@@ -3,10 +3,17 @@ name = "textum"
 path = "src/cli.rs"
 
 [dependencies]
+ropey = "1.6"
+
+# Optional dependencies
+# -- Facet
 facet = { optional = true, version = "0.30.0" }
 facet-args = { optional = true, version = "0.30.0" }
 facet-json = { optional = true, version = "0.30.0" }
-ropey = "1.6"
+
+# -- Symbols
+tree-sitter = { optional = true, version = "0.24.0" }
+tree-sitter-rust = { optional = true, version = "0.24.0" }
 
 [package]
 authors = ["Louis Maddox <louismmx@gmail.com>"]
@@ -70,7 +77,16 @@ cli = ["all-patch-fields", "dep:facet-args", "json"]
 facet = ["dep:facet"]
 json = ["dep:facet-json", "facet"]
 
+# --- Symbol paths
+ts-base = ["dep:tree-sitter"]
+ts-full = ["ts-rust"]
+# --- Symbol paths -- tree-sitter languages
+ts-rust = ["dep:tree-sitter-rust", "ts-base"] # TODO: tree-sitter-symbols-rust
+
 [dev-dependencies]
 assert_cmd = "2.1.1"
 predicates = "3.1.3"
 tempfile = "3.23.0"
+
+[package.metadata.cargo-machete]
+ignored = ["tree-sitter", "tree-sitter-rust"]
