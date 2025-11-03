@@ -65,8 +65,8 @@ cargo = "deny"
 pedantic = "deny"
 
 [lints.rust]
+missing_docs = "deny"
 unsafe_code = "forbid"
-# missing_docs = "deny"
 
 [features]
 # --- Patch field gating features
