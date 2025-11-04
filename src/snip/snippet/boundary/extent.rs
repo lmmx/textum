@@ -311,3 +311,7 @@ pub fn calculate_matching_extent(
 
     Ok(cursor)
 }
+
+#[cfg(test)]
+#[path = "../../../tests/boundary_extent.rs"]
+mod boundary_extent;

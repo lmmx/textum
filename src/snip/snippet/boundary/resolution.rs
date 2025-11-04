@@ -69,3 +69,7 @@ impl Boundary {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "../../../tests/boundary_resolution.rs"]
+mod boundary_resolution;
