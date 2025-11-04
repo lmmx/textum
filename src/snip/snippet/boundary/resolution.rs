@@ -1,4 +1,7 @@
-use crate::snip::{boundary::BoundaryError, Boundary, BoundaryMode, Extent};
+use super::{
+    calculate_bytes_extent, calculate_chars_extent, calculate_lines_extent,
+    calculate_matching_extent, Boundary, BoundaryError, BoundaryMode, Extent,
+};
 use ropey::Rope;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
