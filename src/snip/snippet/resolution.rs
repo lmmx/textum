@@ -14,7 +14,8 @@ pub struct SnippetResolution {
 fn validate_range(start: usize, end: usize, rope: &Rope) -> Result<(), SnippetError> {
     let rope_len = rope.len_chars();
 
-    if start >= end {
+    // Allow start == end for zero-width ranges (insertions)
+    if start > end {
         return Err(SnippetError::InvalidRange { start, end });
     }
 
