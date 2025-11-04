@@ -2,28 +2,16 @@
 
 ## Current State
 
-- Target enum defined with five variants: Literal, Pattern, Line, Char, Position (src/snip/target.rs:4-14)
-- Target derives Debug, Clone, PartialEq, Eq, Hash (src/snip/target.rs:3, src/snip/target.rs:18-60)
-- Pattern variant feature-gated behind "regex" cargo feature (src/snip/target.rs:6-7)
-
-## Missing
-
-- Target resolution to rope char indices (no src/snip/target/matching.rs exists)
-- Target resolution error type with variants for NotFound, OutOfBounds, InvalidPosition (no src/snip/target/error.rs exists)
-- Target::resolve method returning Result<usize, TargetError> to find first char position in rope
-- Function to search rope for first Literal string match
-- Function to search rope for first Pattern regex match  
-- Function to convert Line number to char index via rope.line_to_char with bounds validation
-- Function to validate Char index against rope.len_chars() bounds
-- Function to convert Position{line, col} to char index with one-indexing adjustment and bounds validation
-- Unit tests for target resolution at src/tests/target_matching.rs with #[path] attribute in src/snip/target.rs
-
----
-
-Plan:
-
-1. Create `src/snip/target/error.rs` with `TargetError` enum (NotFound, OutOfBounds, InvalidPosition variants), all documented
-2. Create `src/snip/target/matching.rs` with resolution functions, all documented
-3. Add `impl Target { pub fn resolve(&self, rope: &Rope) -> Result<usize, TargetError> }` in matching.rs
-4. Create `src/tests/target_matching.rs` with unit tests
-5. Add `#[path = "tests/target_matching.rs"] mod target_matching;` at end of src/snip/target.rs
+- Target enum defined with five variants: Literal, Pattern, Line, Char, Position (src/snip/target.rs:6-20)
+- Pattern variant stores both pattern string and compiled regex (src/snip/target.rs:11-15)
+- Target::pattern constructor creates Pattern from string, returns TargetError::InvalidPattern on compilation failure (src/snip/target.rs:40-47)
+- Target derives Debug, Clone, PartialEq, Eq, Hash comparing pattern strings for Pattern variant (src/snip/target.rs:24-48, src/snip/target.rs:50-75)
+- Pattern variant feature-gated behind "regex" cargo feature using regex-cursor crate (src/snip/target.rs:11, Cargo.toml)
+- TargetError enum with NotFound, OutOfBounds, InvalidPosition, InvalidPattern variants (src/snip/target/error.rs:6-18)
+- Target::resolve method returns Result<usize, TargetError> with char index of first match (src/snip/target/matching.rs:15-50)
+- resolve_literal searches rope via chars() iterator (src/snip/target/matching.rs:53-81)
+- resolve_pattern uses regex-cursor RopeyCursor for chunk-aware regex matching (src/snip/target/matching.rs:84-98)
+- resolve_line converts line number to char index with bounds validation (src/snip/target/matching.rs:101-108)
+- resolve_char validates char index against rope.len_chars() with strict bounds (src/snip/target/matching.rs:111-118)
+- resolve_position converts one-indexed line/col to char index with line length validation (src/snip/target/matching.rs:121-145)
+- Unit tests cover all Target variants and error cases (src/tests/target_matching.rs)

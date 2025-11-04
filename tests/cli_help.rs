@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(feature = "cli")]
 use assert_cmd::cargo_bin_cmd;
 #[cfg(feature = "cli")]

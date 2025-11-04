@@ -7,7 +7,7 @@ ropey = "1.6"
 
 # Optional dependencies
 # -- Regex
-regex = { optional = true, version = "1.12" }
+regex-cursor = { optional = true, version = "0.1" }
 
 # -- Facet
 facet = { optional = true, version = "0.30.0" }
@@ -70,9 +70,9 @@ unsafe_code = "forbid"
 
 [features]
 # --- Patch field gating features
-line_tol = []         # max_line_drift field
-regex = ["dep:regex"]
-symbol_path = []      # symbol_path field
+line_tol = []                # max_line_drift field
+regex = ["dep:regex-cursor"]
+symbol_path = []             # symbol_path field
 
 all-patch-fields = ["line_tol", "symbol_path"]
 
