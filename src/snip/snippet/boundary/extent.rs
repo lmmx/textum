@@ -20,15 +20,35 @@ pub enum Extent {
     Matching(usize, Target),
 }
 
-/// Extends `end` by `n` lines (or fewer if hitting EOF).
+/// Extends `end` by `count` lines (or fewer if hitting EOF).
 ///
-/// Moves N lines forward from `from` (a char index) and returns the char index at the start
-/// of the target line (i.e. `line_start + count` -> start of that line).
+/// Moves `count` lines forward from `from` and returns the char index at the start of that line.
+///
+/// # Arguments
+///
+/// * `rope` - The rope to navigate.
+/// * `from` - Starting character index (inclusive).
+/// * `count` - Number of lines to extend forward.
+///
+/// # Returns
+///
+/// Returns `Ok(char_index)` at the start of the target line.
 ///
 /// # Errors
 ///
-/// Returns [`BoundaryError::ExtentOutOfBounds`] if the computed
-/// line index exceeds the total number of lines in the rope.
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the target line
+/// does not exist.
+///
+/// # Examples
+///
+/// Here we extend 3 lines from `from = 20`. The example shows which line start is returned.
+///
+/// ```rust
+/// # use ropey::Rope;
+/// # use textum::snip::snippet::boundary::calculate_lines_extent;
+/// let rope = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5");
+/// assert_eq!(calculate_lines_extent(&rope, 20, 3).unwrap(), 42);
+/// ```
 pub fn calculate_lines_extent(
     rope: &Rope,
     from: usize,
@@ -47,14 +67,36 @@ pub fn calculate_lines_extent(
     Ok(rope.line_to_char(target_line))
 }
 
-/// Extends `end` by `n` chars.
+/// Extends `end` by `count` characters.
 ///
-/// Returns `from + count` with bounds checking against `rope.len_chars()`.
+/// Returns `from + count` with bounds checking against the rope length.
+///
+/// # Arguments
+///
+/// * `rope` - The rope to navigate.
+/// * `from` - Starting character index.
+/// * `count` - Number of characters to extend forward.
+///
+/// # Returns
+///
+/// Returns `Ok(char_index)` equal to `from + count`.
 ///
 /// # Errors
 ///
-/// Returns [`BoundaryError::ExtentOutOfBounds`] if the computed
-/// index would go past the end of the rope.
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the target char index
+/// would exceed the rope length.
+///
+/// # Examples
+///
+/// Here we extend 4 characters from `from = 3` and also show a case where extending past the rope length fails.
+///
+/// ```rust
+/// # use ropey::Rope;
+/// # use textum::snip::snippet::boundary::calculate_chars_extent;
+/// let rope = Rope::from("Hello, world");
+/// assert_eq!(calculate_chars_extent(&rope, 3, 4).unwrap(), 7);
+/// assert!(calculate_chars_extent(&rope, 10, 5).is_err());
+/// ```
 pub fn calculate_chars_extent(
     rope: &Rope,
     from: usize,
@@ -67,16 +109,37 @@ pub fn calculate_chars_extent(
     Ok(new_end)
 }
 
-/// Extends `end` by `n` bytes (UTF-8 safe).
+/// Extends `end` by `count` bytes (UTF-8 safe).
 ///
-/// Converts `from` to bytes, adds `count` bytes, and converts back to a char index.
-/// If the byte position lands in the middle of a multi-byte char, this rounds forward
-/// to the next full character boundary (per the spec).
+/// Converts `from` to bytes, adds `count` bytes, and returns the corresponding char index,
+/// rounding forward if the byte position falls inside a multi-byte character.
+///
+/// # Arguments
+///
+/// * `rope` - The rope to navigate.
+/// * `from` - Starting character index.
+/// * `count` - Number of bytes to extend forward.
+///
+/// # Returns
+///
+/// Returns `Ok(char_index)` corresponding to the position after advancing `count` bytes.
 ///
 /// # Errors
 ///
-/// Returns [`BoundaryError::ExtentOutOfBounds`] if the resulting
-/// byte index would exceed the rope's byte length.
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the resulting index
+/// would exceed the rope length.
+///
+/// # Examples
+///
+/// Here we extend 2 bytes from `from = 6` in "hello 🎉". This demonstrates that extending into a multi-byte
+/// emoji rounds to the next character boundary, returning the full emoji rather than a mid-character slice.
+///
+/// ```rust
+/// # use ropey::Rope;
+/// # use textum::snip::snippet::boundary::calculate_bytes_extent;
+/// let rope = Rope::from("hello 🎉");
+/// assert_eq!(calculate_bytes_extent(&rope, 6, 2).unwrap(), 7);
+/// ```
 pub fn calculate_bytes_extent(
     rope: &Rope,
     from: usize,
@@ -106,23 +169,40 @@ pub fn calculate_bytes_extent(
     }
 }
 
-/// Extends `end` by `n` occurrences of the target.
+/// Extends `end` by `count` occurrences of `target`.
 ///
-/// Finds `count` occurrences of `target` *forward* from `from` (char index),
-/// returning the char index immediately *after* the final match. Returns
-/// `ExtentOutOfBounds` if fewer than `count` matches are found.
+/// Finds `count` occurrences of `target` forward from `from`, returning the char index immediately
+/// after the last match.
 ///
-/// Supported target matchers:
-/// - `Target::Literal` (works by scanning chunks)
-/// - `Target::Pattern` (uses `regex_cursor` + `RopeyCursor` when the `regex` feature is enabled)
+/// # Arguments
 ///
-/// Other `Target` variants are considered invalid for "Matching" extent and will produce
-/// `BoundaryError::InvalidExtent`. This keeps behaviour explicit and lets you expand later.
+/// * `rope` - The rope to navigate.
+/// * `from` - Starting character index.
+/// * `count` - Number of occurrences to extend forward.
+/// * `target` - The pattern or literal to match.
+///
+/// # Returns
+///
+/// Returns `Ok(char_index)` immediately after the last match found.
 ///
 /// # Errors
 ///
-/// Returns [`BoundaryError::ExtentOutOfBounds`] if the target
-/// cannot be found enough times before reaching the end of the rope.
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if fewer than `count` matches
+/// are found before the end of the rope.
+/// Returns [`BoundaryError::InvalidExtent`] if the target type is not supported
+/// for "Matching" extents (e.g., empty literals).
+///
+/// # Examples
+///
+/// Here we search for 3 occurrences of "\n" starting at `from = 20` to illustrate finding the Nth match.
+///
+/// ```rust
+/// # use ropey::Rope;
+/// # use textum::snip::snippet::boundary::{calculate_matching_extent, Target};
+/// let rope = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6");
+/// let target = Target::Literal("\n".to_string());
+/// assert_eq!(calculate_matching_extent(&rope, 20, 3, &target).unwrap(), 42);
+/// ```
 pub fn calculate_matching_extent(
     rope: &Rope,
     from: usize,
