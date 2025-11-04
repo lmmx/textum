@@ -1,4 +1,4 @@
-# 2025-11-04: Patch-Snippet Integration Plan
+# 2025-11-04: Patch-Snippet Integration
 
 ## Current State
 
@@ -10,29 +10,25 @@
 - Target supports Literal, Pattern, Line, Char, Position matching (src/snip/target.rs:11-35)
 - Boundary combines Target with BoundaryMode (Exclude, Include, Extend) (src/snip/snippet/boundary.rs:20-30)
 - Extent supports Lines, Chars, Bytes, Matching(count, Target) (src/snip/snippet/boundary/extent.rs:11-21)
-- max_line_drift field exists but unused in Patch (src/patch.rs:89-92, feature-gated)
-- symbol_path field exists but unused in Patch (src/patch.rs:82-85, feature-gated)
+- replacement field is Option<String> to distinguish deletion (None) from empty replacement (Some("")) (src/patch.rs:71-77)
 
 ## Missing
 
-- Patch constructor accepting Snippet instead of raw range
-- Patch.apply implementation using Snippet.replace instead of direct rope manipulation
-- Target field in Patch struct to replace range field
-- Boundary field(s) in Patch struct to specify selection semantics
-- Migration path for existing range-based Patch construction (backwards compatibility or breaking change decision)
-- Updated Patch.from_line_positions to construct Snippet from line/col coordinates
-- PatchSet logic to handle Snippet-based patches (may need resolution before sorting)
-- Removal of max_line_drift field and associated feature gate
-- Tests for Patch using Snippet::At with various BoundaryMode options
-- Tests for Patch using Snippet::Between with marker-based boundaries
-- Tests for PatchSet applying multiple Snippet-based patches to same file
-- Integration tests demonstrating fuzzy matching via Target::Pattern
-- CLI JSON deserialization support for Snippet-based patch format
-- Documentation updates in lib.rs examples showing Snippet-based Patch construction
-- facet derive compatibility for new Patch struct shape (if using Snippet fields)
+- Patch.snippet field to replace range field
+- Patch.apply implementation using Snippet.resolve
+- PatchSet overlap detection for resolved ranges with non-empty replacements
+- PatchSet intra-line reverse-order sorting using char indices
+- Patch::from_literal_target constructor
+- Patch::from_line_range constructor
+- Updated Patch::from_line_positions using Snippet::At with Position target
+- PatchError variants for SnippetError, BoundaryError, TargetError
+- Tests for Snippet-based Patch construction
+- Tests for PatchSet overlap detection and rejection
+- CLI JSON deserialization for Snippet-based patch format
+- Documentation examples showing Snippet-based Patch API
 
 ## Divergence
 
-- README and lib.rs examples show range-based Patch construction (src/lib.rs:9-23, src/patch.rs:41-62) but planned implementation will use Snippet-based construction
-- max_line_drift field documented as "fuzzy matching" feature (src/patch.rs:89-92) but Target::Pattern provides actual fuzzy matching capability through regex
-- Patch described as "character-level granularity" (src/lib.rs:3-6) but Snippet system supports line-level, byte-level, and pattern-based granularity through Extent
+- Patch.replacement is Option<String> semantically distinguishing deletion from empty replacement (src/patch.rs:71-77) but Snippet.replace accepts &str without null distinction (src/snip/snippet/replacement.rs:60)
+- max_line_drift field exists for fuzzy matching (src/patch.rs:89-92) but Target::Pattern provides actual pattern matching via regex
+- README shows range-based construction but implementation will use Snippet-based construction
