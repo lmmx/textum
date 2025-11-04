@@ -41,13 +41,14 @@ pub enum Extent {
 ///
 /// # Examples
 ///
-/// Here we extend 3 lines from `from = 20`. The example shows which line start is returned.
+/// Extend 2 lines forward from the start of line 2:
 ///
 /// ```rust
 /// # use ropey::Rope;
 /// # use textum::snip::snippet::boundary::calculate_lines_extent;
-/// let rope = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5");
-/// assert_eq!(calculate_lines_extent(&rope, 20, 3).unwrap(), 42);
+/// let rope = Rope::from("1\n2\n3\n4\n5");
+/// let from_char = rope.line_to_char(2);  // Start of line 2 (char 4)
+/// assert_eq!(calculate_lines_extent(&rope, from_char, 2).unwrap(), 8);  // Start of line 4
 /// ```
 pub fn calculate_lines_extent(
     rope: &Rope,
@@ -131,14 +132,27 @@ pub fn calculate_chars_extent(
 ///
 /// # Examples
 ///
-/// Here we extend 2 bytes from `from = 6` in "hello 🎉". This demonstrates that extending into a multi-byte
-/// emoji rounds to the next character boundary, returning the full emoji rather than a mid-character slice.
+/// Extend 2 bytes from within "hello", landing cleanly on the space:
 ///
 /// ```rust
 /// # use ropey::Rope;
 /// # use textum::snip::snippet::boundary::calculate_bytes_extent;
 /// let rope = Rope::from("hello 🎉");
-/// assert_eq!(calculate_bytes_extent(&rope, 6, 2).unwrap(), 7);
+/// // From char 3 ('l'), extend 2 bytes to land on char 5 (space)
+/// assert_eq!(calculate_bytes_extent(&rope, 3, 2).unwrap(), 5);
+/// ```
+///
+/// Extend from the emoji through to EOF:
+///
+/// ```rust
+/// # use ropey::Rope;
+/// # use textum::snip::snippet::boundary::calculate_bytes_extent;
+/// let rope = Rope::from("hello 🎉");
+/// // Char 6 is the emoji (4 bytes: bytes 6-9)
+/// // Extending 4 bytes from char 6 reaches byte 10 (EOF), which maps to char 7
+/// let from_char = 6;  // Start of emoji
+/// let byte_count = 4; // Length of emoji in bytes
+/// assert_eq!(calculate_bytes_extent(&rope, from_char, byte_count).unwrap(), 7);
 /// ```
 pub fn calculate_bytes_extent(
     rope: &Rope,
@@ -194,15 +208,22 @@ pub fn calculate_bytes_extent(
 ///
 /// # Examples
 ///
-/// Here we search for 3 occurrences of "\n" starting at `from = 20` to illustrate finding the Nth match.
+/// Find newlines from different starting positions:
 ///
 /// ```rust
 /// # use ropey::Rope;
 /// # use textum::snip::snippet::boundary::calculate_matching_extent;
 /// # use textum::snip::Target;
-/// let rope = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6");
+///
+/// // Simple case: from the beginning
+/// let rope = Rope::from("a\nb\nc\nd\n");
 /// let target = Target::Literal("\n".to_string());
-/// assert_eq!(calculate_matching_extent(&rope, 20, 3, &target).unwrap(), 42);
+/// assert_eq!(calculate_matching_extent(&rope, 0, 3, &target).unwrap(), 6);
+///
+/// // Complex case: from char 20 (not line 20!)
+/// let rope2 = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n");
+/// let from_char = 20;  // Within "Line 3" (not line number 20)
+/// assert_eq!(calculate_matching_extent(&rope2, from_char, 3, &target).unwrap(), 35);
 /// ```
 pub fn calculate_matching_extent(
     rope: &Rope,
