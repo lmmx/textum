@@ -3,15 +3,25 @@ use crate::snip::Target;
 use ropey::Rope;
 
 #[test]
-fn test_replace_insert_at_position() {
-    // Tests zero-width range (start == end) performs insertion
-    // Uses Snippet::At with Exclude mode to insert text without removing anything
+fn test_replace_insert_at_position_exclude() {
     let rope = Rope::from_str("hello world");
-    let target = Target::Char(5); // After "hello"
-    let boundary = Boundary::new(target, BoundaryMode::Exclude);
+    let target = Target::Char(4); // The o in "hello"
+    let boundary = Boundary::new(target, BoundaryMode::Exclude); // Exclude the o
     let snippet = Snippet::At(boundary);
 
     let result = snippet.replace(&rope, ", beautiful").unwrap();
+
+    assert_eq!(result.to_string(), "hello, beautiful world");
+}
+
+#[test]
+fn test_replace_insert_at_position_include() {
+    let rope = Rope::from_str("hello world");
+    let target = Target::Char(5); // The space after "hello"
+    let boundary = Boundary::new(target, BoundaryMode::Include); // Include the space
+    let snippet = Snippet::At(boundary);
+
+    let result = snippet.replace(&rope, ", beautiful ").unwrap();
 
     assert_eq!(result.to_string(), "hello, beautiful world");
 }
