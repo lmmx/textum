@@ -112,7 +112,7 @@ fn test_resolve_literal_not_found() {
 #[test]
 fn test_resolve_literal_empty() {
     let rope = Rope::from_str("hello");
-    let target = Target::Literal("".to_string());
+    let target = Target::Literal(String::new());
     assert_eq!(target.resolve(&rope).unwrap(), 0);
 }
 

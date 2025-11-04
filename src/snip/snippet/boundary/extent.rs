@@ -20,9 +20,15 @@ pub enum Extent {
     Matching(usize, Target),
 }
 
+/// Extends `end` by `n` lines (or fewer if hitting EOF).
+///
 /// Moves N lines forward from `from` (a char index) and returns the char index at the start
 /// of the target line (i.e. `line_start + count` -> start of that line).
-/// Returns `ExtentOutOfBounds` if the requested line does not exist.
+///
+/// # Errors
+///
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the computed
+/// line index exceeds the total number of lines in the rope.
 pub fn calculate_lines_extent(
     rope: &Rope,
     from: usize,
@@ -41,7 +47,14 @@ pub fn calculate_lines_extent(
     Ok(rope.line_to_char(target_line))
 }
 
+/// Extends `end` by `n` chars.
+///
 /// Returns `from + count` with bounds checking against `rope.len_chars()`.
+///
+/// # Errors
+///
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the computed
+/// index would go past the end of the rope.
 pub fn calculate_chars_extent(
     rope: &Rope,
     from: usize,
@@ -54,9 +67,16 @@ pub fn calculate_chars_extent(
     Ok(new_end)
 }
 
+/// Extends `end` by `n` bytes (UTF-8 safe).
+///
 /// Converts `from` to bytes, adds `count` bytes, and converts back to a char index.
 /// If the byte position lands in the middle of a multi-byte char, this rounds forward
 /// to the next full character boundary (per the spec).
+///
+/// # Errors
+///
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the resulting
+/// byte index would exceed the rope's byte length.
 pub fn calculate_bytes_extent(
     rope: &Rope,
     from: usize,
@@ -86,6 +106,8 @@ pub fn calculate_bytes_extent(
     }
 }
 
+/// Extends `end` by `n` occurrences of the target.
+///
 /// Finds `count` occurrences of `target` *forward* from `from` (char index),
 /// returning the char index immediately *after* the final match. Returns
 /// `ExtentOutOfBounds` if fewer than `count` matches are found.
@@ -96,6 +118,11 @@ pub fn calculate_bytes_extent(
 ///
 /// Other `Target` variants are considered invalid for "Matching" extent and will produce
 /// `BoundaryError::InvalidExtent`. This keeps behaviour explicit and lets you expand later.
+///
+/// # Errors
+///
+/// Returns [`BoundaryError::ExtentOutOfBounds`] if the target
+/// cannot be found enough times before reaching the end of the rope.
 pub fn calculate_matching_extent(
     rope: &Rope,
     from: usize,
@@ -139,15 +166,13 @@ pub fn calculate_matching_extent(
                     // Use char_indices to find the byte offset of that char.
                     let mut byte_offset_in_chunk = 0usize;
                     if local_char_offset > 0 {
-                        let mut reached = 0usize;
                         let mut set = false;
-                        for (b_idx, _ch) in chunk.char_indices() {
+                        for (reached, (b_idx, _ch)) in chunk.char_indices().enumerate() {
                             if reached == local_char_offset {
                                 byte_offset_in_chunk = b_idx;
                                 set = true;
                                 break;
                             }
-                            reached += 1;
                         }
                         if !set {
                             // local_char_offset is at or past the end of this chunk's chars:

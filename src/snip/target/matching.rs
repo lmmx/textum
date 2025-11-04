@@ -50,8 +50,14 @@ impl Target {
         }
     }
 
+    /// Resolves a target into absolute character indices in the rope.
+    ///
     /// Resolves this target into a `(start, end)` range in character indices.
     /// The end is exclusive, matching Rust's slicing semantics.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TargetError`] if the target cannot be resolved in the given rope.
     pub fn resolve_range(&self, rope: &Rope) -> Result<(usize, usize), TargetError> {
         match self {
             // Efficient literal search directly on Rope chunks
