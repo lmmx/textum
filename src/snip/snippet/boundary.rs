@@ -2,12 +2,19 @@ use std::hash::Hash;
 
 use crate::snip::Target;
 
+/// BoundaryError enum type raised by boundary resolution.
+pub mod error;
 /// Extent configuration for boundary expansion.
 pub mod extent;
 /// Boundary treatment modes (whether to include/exclude/extend them).
 pub mod mode;
+/// Boundary resolution struct and Boundary::resolve implementation.
+pub mod resolution;
+
+pub use error::*;
 pub use extent::*;
 pub use mode::*;
+pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// Pairs a target with the mode of inclusion/exclusion/extension of its boundaries.
