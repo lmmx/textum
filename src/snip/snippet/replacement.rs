@@ -41,8 +41,8 @@ impl Snippet {
     /// use ropey::Rope;
     ///
     /// let rope = Rope::from_str("hello world");
-    /// let target = Target::Char(5); // After "hello"
-    /// let boundary = Boundary::new(target, BoundaryMode::Exclude);
+    /// let target = Target::Char(4); // The o in "hello"
+    /// let boundary = Boundary::new(target, BoundaryMode::Exclude); // Exclude the o
     /// let snippet = Snippet::At(boundary);
     ///
     /// let result = snippet.replace(&rope, ", beautiful").unwrap();

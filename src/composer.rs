@@ -17,29 +17,23 @@ use std::collections::HashMap;
 /// # Examples
 ///
 /// ```
-/// use textum::{Patch, PatchSet};
+/// use textum::{Patch, PatchSet, BoundaryMode};
 ///
 /// let mut set = PatchSet::new();
 ///
-/// set.add(Patch {
-///     file: "tests/fixtures/sample.txt".to_string(),
-///     range: (0, 5),
-///     replacement: Some("goodbye".into()),
-///     #[cfg(feature = "symbol_path")]
-///     symbol_path: None,
-///     #[cfg(feature = "line_tol")]
-///     max_line_drift: None,
-/// });
+/// set.add(Patch::from_literal_target(
+///     "tests/fixtures/sample.txt".to_string(),
+///     "hello",
+///     BoundaryMode::Include,
+///     "goodbye",
+/// ));
 ///
-/// set.add(Patch {
-///     file: "tests/fixtures/sample.txt".to_string(),
-///     range: (6, 11),
-///     replacement: Some("rust".into()),
-///     #[cfg(feature = "symbol_path")]
-///     symbol_path: None,
-///     #[cfg(feature = "line_tol")]
-///     max_line_drift: None,
-/// });
+/// set.add(Patch::from_literal_target(
+///     "tests/fixtures/sample.txt".to_string(),
+///     "world",
+///     BoundaryMode::Include,
+///     "rust",
+/// ));
 ///
 /// let results = set.apply_to_files().unwrap();
 /// assert_eq!(results.get("tests/fixtures/sample.txt").unwrap(), "goodbye rust\n");
@@ -74,18 +68,15 @@ impl PatchSet {
     /// # Examples
     ///
     /// ```
-    /// use textum::{Patch, PatchSet};
+    /// use textum::{Patch, PatchSet, BoundaryMode};
     ///
     /// let mut set = PatchSet::new();
-    /// set.add(Patch {
-    ///     file: "main.rs".to_string(),
-    ///     range: (10, 15),
-    ///     replacement: Some("hello".into()),
-    ///     #[cfg(feature = "symbol_path")]
-    ///     symbol_path: None,
-    ///     #[cfg(feature = "line_tol")]
-    ///     max_line_drift: None,
-    /// });
+    /// set.add(Patch::from_literal_target(
+    ///     "main.rs".to_string(),
+    ///     "old",
+    ///     BoundaryMode::Include,
+    ///     "new",
+    /// ));
     /// ```
     pub fn add(&mut self, patch: Patch) {
         self.patches.push(patch);

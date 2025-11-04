@@ -7,7 +7,16 @@ fn example() -> Result<(), textum::PatchError> {
     let dry_run = true; // Change to false to actually write files
 
     let input = r#"[
-      {"file": "tests/fixtures/sample.txt", "range": [0, 5], "replacement": "goodbye"}
+      {
+        "file": "tests/fixtures/sample.txt",
+        "snippet": {
+          "At": {
+            "target": {"Literal": "hello"},
+            "mode": "Include"
+          }
+        },
+        "replacement": "goodbye"
+      }
     ]"#;
 
     let patches: Vec<Patch> = facet_json::from_str(input)?;
