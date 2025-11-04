@@ -70,14 +70,13 @@ unsafe_code = "forbid"
 
 [features]
 # --- Patch field gating features
-line_tol = []                # max_line_drift field
 regex = ["dep:regex-cursor"]
 symbol_path = []             # symbol_path field
 
-all-patch-fields = ["line_tol", "symbol_path"]
+all-patch-fields = ["symbol_path"]
 
 # --- Dependency features
-cli = ["all-patch-fields", "dep:facet-args", "json"]
+cli = ["all-patch-fields", "dep:facet-args", "json", "regex"]
 facet = ["dep:facet"]
 json = ["dep:facet-json", "facet"]
 
@@ -85,7 +84,7 @@ json = ["dep:facet-json", "facet"]
 ts-base = ["dep:tree-sitter"]
 ts-full = ["ts-rust"]
 # --- Symbol paths -- tree-sitter languages
-ts-rust = ["dep:tree-sitter-rust", "ts-base"] # TODO: tree-sitter-symbols-rust
+ts-rust = ["dep:tree-sitter-rust", "ts-base"] # TODO: tss-rust
 
 [dev-dependencies]
 assert_cmd = "2.1.1"

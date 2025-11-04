@@ -1,6 +1,9 @@
 //! Target specifications for boundary matching.
 use std::hash::{Hash, Hasher};
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 pub mod error;
 pub mod matching;
 
@@ -8,6 +11,7 @@ pub mod matching;
 use error::TargetError;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "facet", derive(Facet))]
 /// Defines what text position or pattern a boundary matches.
 pub enum Target {
     /// An exact string to match.
@@ -18,6 +22,7 @@ pub enum Target {
         /// The original pattern string.
         pattern: String,
         /// The compiled regex.
+        #[cfg_attr(feature = "facet", facet(opaque))]
         regex: regex_cursor::engines::meta::Regex,
     },
     /// Matches an absolute line number.

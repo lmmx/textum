@@ -2,13 +2,15 @@ use std::hash::Hash;
 
 use ropey::Rope;
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 use super::BoundaryError;
 use crate::snip::Target;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "facet", derive(Facet))]
 /// Measures distance for boundary extension.
-///
-/// May be given in absolute terms or subject to some target(s).
 pub enum Extent {
     /// Extends by a line count.
     Lines(usize),

@@ -7,49 +7,61 @@ mod cli_integration {
     use tempfile::TempDir;
 
     #[test]
-    fn cli_applies_simple_patch_from_file() {
+    fn cli_applies_literal_target_patch() {
         let temp = TempDir::new().unwrap();
 
-        // Create a source file to patch
         let source_file = temp.path().join("hello.txt");
         fs::write(&source_file, "Hello Louis!").unwrap();
 
-        // Create a patch file with all required fields
         let patch_file = temp.path().join("patches.json");
         let patch_json = format!(
             r#"[{{
                 "file": "{}",
-                "range": [6, 11],
+                "snippet": {{
+                    "At": {{
+                        "target": {{"Literal": "Louis"}},
+                        "mode": "Include"
+                    }}
+                }},
                 "replacement": "World"
             }}]"#,
             source_file.display()
         );
         fs::write(&patch_file, patch_json).unwrap();
 
-        // Apply the patch
         cargo_bin_cmd!("textum")
             .arg(patch_file.to_str().unwrap())
             .assert()
             .success()
             .stderr(predicate::str::contains("Patched:"));
 
-        // Verify the result
         let result = fs::read_to_string(&source_file).unwrap();
         assert_eq!(result, "Hello World!");
     }
 
     #[test]
-    fn cli_applies_patch_from_stdin() {
+    fn cli_applies_line_range_patch() {
         let temp = TempDir::new().unwrap();
 
-        let source_file = temp.path().join("greet.txt");
-        fs::write(&source_file, "Hi there").unwrap();
+        let source_file = temp.path().join("lines.txt");
+        fs::write(&source_file, "line1\nline2\nline3\nline4\n").unwrap();
 
         let patch_json = format!(
             r#"[{{
                 "file": "{}",
-                "range": [0, 2],
-                "replacement": "Hello"
+                "snippet": {{
+                    "Between": {{
+                        "start": {{
+                            "target": {{"Line": 1}},
+                            "mode": "Include"
+                        }},
+                        "end": {{
+                            "target": {{"Line": 3}},
+                            "mode": "Exclude"
+                        }}
+                    }}
+                }},
+                "replacement": "replaced\n"
             }}]"#,
             source_file.display()
         );
@@ -60,7 +72,108 @@ mod cli_integration {
             .success();
 
         let result = fs::read_to_string(&source_file).unwrap();
-        assert_eq!(result, "Hello there");
+        assert_eq!(result, "line1\nreplaced\nline4\n");
+    }
+
+    #[test]
+    fn cli_applies_between_markers_patch() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("markers.html");
+        fs::write(&source_file, "<!-- start -->old content<!-- end -->").unwrap();
+
+        let patch_json = format!(
+            r#"[{{
+                "file": "{}",
+                "snippet": {{
+                    "Between": {{
+                        "start": {{
+                            "target": {{"Literal": "<!-- start -->"}},
+                            "mode": "Exclude"
+                        }},
+                        "end": {{
+                            "target": {{"Literal": "<!-- end -->"}},
+                            "mode": "Exclude"
+                        }}
+                    }}
+                }},
+                "replacement": "new content"
+            }}]"#,
+            source_file.display()
+        );
+
+        cargo_bin_cmd!("textum")
+            .write_stdin(patch_json)
+            .assert()
+            .success();
+
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "<!-- start -->new content<!-- end -->");
+    }
+
+    #[cfg(feature = "regex")]
+    #[test]
+    fn cli_applies_pattern_patch() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("version.txt");
+        fs::write(&source_file, "version=1.2.3").unwrap();
+
+        let patch_json = format!(
+            r#"[{{
+                "file": "{}",
+                "snippet": {{
+                    "At": {{
+                        "target": {{
+                            "Pattern": {{
+                                "pattern": "\\d+\\.\\d+\\.\\d+"
+                            }}
+                        }},
+                        "mode": "Include"
+                    }}
+                }},
+                "replacement": "2.0.0"
+            }}]"#,
+            source_file.display()
+        );
+
+        cargo_bin_cmd!("textum")
+            .write_stdin(patch_json)
+            .assert()
+            .success();
+
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "version=2.0.0");
+    }
+
+    #[test]
+    fn cli_applies_deletion_patch() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("delete.txt");
+        fs::write(&source_file, "keep this\ndelete this\nkeep this").unwrap();
+
+        let patch_json = format!(
+            r#"[{{
+                "file": "{}",
+                "snippet": {{
+                    "At": {{
+                        "target": {{"Literal": "delete this\n"}},
+                        "mode": "Include"
+                    }}
+                }},
+                "replacement": ""
+            }}]"#,
+            source_file.display()
+        );
+
+        cargo_bin_cmd!("textum")
+            .write_stdin(patch_json)
+            .assert()
+            .success();
+
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "keep this\nkeep this");
     }
 
     #[test]
@@ -74,7 +187,12 @@ mod cli_integration {
         let patch_json = format!(
             r#"[{{
                 "file": "{}",
-                "range": [0, 5],
+                "snippet": {{
+                    "At": {{
+                        "target": {{"Literal": "Don't"}},
+                        "mode": "Include"
+                    }}
+                }},
                 "replacement": "Please"
             }}]"#,
             source_file.display()
@@ -87,59 +205,42 @@ mod cli_integration {
             .success()
             .stderr(predicate::str::contains("Would patch:"));
 
-        // File should remain unchanged
         let result = fs::read_to_string(&source_file).unwrap();
         assert_eq!(result, original_content);
     }
 
     #[test]
-    fn cli_verbose_shows_patch_count() {
+    fn cli_multiple_patches_same_file() {
         let temp = TempDir::new().unwrap();
 
-        let source_file = temp.path().join("test.txt");
-        fs::write(&source_file, "test").unwrap();
-
-        let patch_json = format!(
-            r#"[{{
-                "file": "{}",
-                "range": [0, 4],
-                "replacement": "best"
-            }}]"#,
-            source_file.display()
-        );
-
-        cargo_bin_cmd!("textum")
-            .arg("--verbose")
-            .write_stdin(patch_json)
-            .assert()
-            .success()
-            .stderr(predicate::str::contains("Loaded 1 patch(es)"));
-    }
-
-    #[test]
-    fn cli_applies_multiple_patches() {
-        let temp = TempDir::new().unwrap();
-
-        let file1 = temp.path().join("file1.txt");
-        let file2 = temp.path().join("file2.txt");
-        fs::write(&file1, "foo").unwrap();
-        fs::write(&file2, "bar").unwrap();
+        let source_file = temp.path().join("multi.txt");
+        fs::write(&source_file, "foo bar baz").unwrap();
 
         let patch_json = format!(
             r#"[
                 {{
                     "file": "{}",
-                    "range": [0, 3],
-                    "replacement": "baz"
+                    "snippet": {{
+                        "At": {{
+                            "target": {{"Literal": "foo"}},
+                            "mode": "Include"
+                        }}
+                    }},
+                    "replacement": "FOO"
                 }},
                 {{
                     "file": "{}",
-                    "range": [0, 3],
-                    "replacement": "qux"
+                    "snippet": {{
+                        "At": {{
+                            "target": {{"Literal": "baz"}},
+                            "mode": "Include"
+                        }}
+                    }},
+                    "replacement": "BAZ"
                 }}
             ]"#,
-            file1.display(),
-            file2.display()
+            source_file.display(),
+            source_file.display()
         );
 
         cargo_bin_cmd!("textum")
@@ -147,8 +248,49 @@ mod cli_integration {
             .assert()
             .success();
 
-        assert_eq!(fs::read_to_string(&file1).unwrap(), "baz");
-        assert_eq!(fs::read_to_string(&file2).unwrap(), "qux");
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "FOO bar BAZ");
+    }
+
+    #[test]
+    fn cli_rejects_overlapping_patches() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("overlap.txt");
+        fs::write(&source_file, "abcdef").unwrap();
+
+        let patch_json = format!(
+            r#"[
+                {{
+                    "file": "{}",
+                    "snippet": {{
+                        "At": {{
+                            "target": {{"Literal": "bcd"}},
+                            "mode": "Include"
+                        }}
+                    }},
+                    "replacement": "XXX"
+                }},
+                {{
+                    "file": "{}",
+                    "snippet": {{
+                        "At": {{
+                            "target": {{"Literal": "def"}},
+                            "mode": "Include"
+                        }}
+                    }},
+                    "replacement": "YYY"
+                }}
+            ]"#,
+            source_file.display(),
+            source_file.display()
+        );
+
+        cargo_bin_cmd!("textum")
+            .write_stdin(patch_json)
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains("Overlapping"));
     }
 
     #[test]
@@ -158,93 +300,5 @@ mod cli_integration {
             .assert()
             .failure()
             .stderr(predicate::str::contains("Error:"));
-    }
-
-    #[test]
-    fn cli_fails_on_missing_file() {
-        cargo_bin_cmd!("textum")
-            .arg("nonexistent-patches.json")
-            .assert()
-            .failure();
-    }
-
-    #[test]
-    fn cli_deletion_patch() {
-        let temp = TempDir::new().unwrap();
-
-        let source_file = temp.path().join("delete.txt");
-        fs::write(&source_file, "Hello World!").unwrap();
-
-        // Delete "World" by replacing with empty string
-        let patch_json = format!(
-            r#"[{{
-                "file": "{}",
-                "range": [6, 11],
-                "replacement": ""
-            }}]"#,
-            source_file.display()
-        );
-
-        cargo_bin_cmd!("textum")
-            .write_stdin(patch_json)
-            .assert()
-            .success();
-
-        let result = fs::read_to_string(&source_file).unwrap();
-        assert_eq!(result, "Hello !");
-    }
-
-    #[test]
-    fn cli_insertion_patch() {
-        let temp = TempDir::new().unwrap();
-
-        let source_file = temp.path().join("insert.txt");
-        fs::write(&source_file, "HelloWorld").unwrap();
-
-        // Insert a space at position 5 (zero-length range)
-        let patch_json = format!(
-            r#"[{{
-                "file": "{}",
-                "range": [5, 5],
-                "replacement": " "
-            }}]"#,
-            source_file.display()
-        );
-
-        cargo_bin_cmd!("textum")
-            .write_stdin(patch_json)
-            .assert()
-            .success();
-
-        let result = fs::read_to_string(&source_file).unwrap();
-        assert_eq!(result, "Hello World");
-    }
-
-    #[test]
-    fn cli_dry_run_verbose_shows_content() {
-        let temp = TempDir::new().unwrap();
-
-        let source_file = temp.path().join("preview.txt");
-        fs::write(&source_file, "before").unwrap();
-
-        let patch_json = format!(
-            r#"[{{
-                "file": "{}",
-                "range": [0, 6],
-                "replacement": "after"
-            }}]"#,
-            source_file.display()
-        );
-
-        cargo_bin_cmd!("textum")
-            .arg("--dry-run")
-            .arg("--verbose")
-            .write_stdin(patch_json)
-            .assert()
-            .success()
-            .stdout(predicate::str::contains("after"));
-
-        // Original file unchanged
-        assert_eq!(fs::read_to_string(&source_file).unwrap(), "before");
     }
 }

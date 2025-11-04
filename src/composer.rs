@@ -93,9 +93,13 @@ impl PatchSet {
 
     /// Apply all patches in this set to their target files.
     ///
-    /// Patches are grouped by file and applied in reverse position order (highest
-    /// character index first) to avoid invalidating subsequent patch positions.
-    /// The resulting file contents are returned as a map from file path to content.
+    /// Patches are grouped by file and all snippets are resolved before sorting.
+    /// Resolved ranges are validated for overlaps - if two patches with non-empty
+    /// replacements have overlapping resolved ranges, an error is returned.
+    ///
+    /// Patches are then sorted by reverse character index (highest first) and applied
+    /// sequentially to maintain stable positions. The resulting file contents are
+    /// returned as a map from file path to content.
     ///
     /// This method reads files from disk, applies all patches for that file, and
     /// returns the modified content. It does not write to disk - use the returned
@@ -103,7 +107,12 @@ impl PatchSet {
     ///
     /// # Errors
     ///
-    /// Returns an error if any file cannot be read or if any patch has an invalid range.
+    /// Returns an error if:
+    /// - any file cannot be read,
+    /// - any snippet cannot be resolved,
+    /// - resolved ranges overlap with non-empty replacements,
+    /// - or any patch has an invalid range.
+    ///
     /// If an error occurs, no files are modified.
     ///
     /// # Examples
@@ -112,15 +121,12 @@ impl PatchSet {
     /// use textum::{Patch, PatchSet};
     ///
     /// let mut set = PatchSet::new();
-    /// set.add(Patch {
-    ///     file: "tests/fixtures/sample.txt".to_string(),
-    ///     range: (6, 11),
-    ///     replacement: Some("rust".into()),
-    ///     #[cfg(feature = "symbol_path")]
-    ///     symbol_path: None,
-    ///     #[cfg(feature = "line_tol")]
-    ///     max_line_drift: None,
-    /// });
+    /// set.add(Patch::from_literal_target(
+    ///     "tests/fixtures/sample.txt".to_string(),
+    ///     "world",
+    ///     textum::BoundaryMode::Include,
+    ///     "rust",
+    /// ));
     ///
     /// let results = set.apply_to_files().unwrap();
     /// assert_eq!(results.get("tests/fixtures/sample.txt").unwrap(), "hello rust\n");
@@ -136,13 +142,38 @@ impl PatchSet {
 
         for (file, patches) in by_file {
             let content = std::fs::read_to_string(&file).map_err(PatchError::IoError)?;
-            let mut rope = Rope::from_str(&content);
+            let rope = Rope::from_str(&content);
 
-            // Sort patches by start position in reverse order for stable application
-            let mut sorted = patches.clone();
-            sorted.sort_by_key(|p| std::cmp::Reverse(p.range.0));
+            // Resolve all snippets to concrete ranges
+            let mut resolved: Vec<(&Patch, (usize, usize))> = Vec::new();
+            for patch in &patches {
+                let resolution = patch.snippet.resolve(&rope)?;
+                let range = (resolution.start, resolution.end);
+                resolved.push((patch, range));
+            }
 
-            for patch in sorted {
+            // Check for overlapping ranges with non-empty replacements
+            for i in 0..resolved.len() {
+                for j in (i + 1)..resolved.len() {
+                    let (patch1, range1) = resolved[i];
+                    let (patch2, range2) = resolved[j];
+
+                    // Check if ranges overlap
+                    let overlaps = range1.0 < range2.1 && range2.0 < range1.1;
+
+                    if overlaps && !patch1.replacement.is_empty() && !patch2.replacement.is_empty()
+                    {
+                        return Err(PatchError::OverlappingRanges { range1, range2 });
+                    }
+                }
+            }
+
+            // Sort by reverse position for stable application
+            resolved.sort_by_key(|(_, range)| std::cmp::Reverse(range.0));
+
+            // Apply patches in reverse order
+            let mut rope = rope;
+            for (patch, _) in resolved {
                 patch.apply(&mut rope)?;
             }
 
