@@ -8,8 +8,15 @@ use ropey::Rope;
 #[test]
 fn test_calculate_lines_extent_success() {
     let rope = Rope::from_str("1\n2\n3\n4\n5");
-    let idx = calculate_lines_extent(&rope, 2, 2).unwrap();
-    assert_eq!(idx, 8); // start of line 4
+    let start_line = 2;
+    let extent_lines = 2;
+    let from_char = rope.line_to_char(start_line); // start of line 2
+    let idx = calculate_lines_extent(&rope, from_char, extent_lines).unwrap();
+
+    let end_line = start_line.saturating_add(extent_lines);
+    let extended_to_char_idx = rope.line_to_char(end_line); // start of line 4
+
+    assert_eq!(idx, extended_to_char_idx); // start of line 4 (2 lines after line 2)
 }
 
 #[test]
@@ -40,7 +47,16 @@ fn test_calculate_chars_extent_out_of_bounds() {
 #[test]
 fn test_calculate_bytes_extent_success() {
     let rope = Rope::from_str("aé😊");
-    let idx = calculate_bytes_extent(&rope, 1, 3).unwrap();
+    let start_char = 1;
+    let byte_count = 3;
+    let idx = calculate_bytes_extent(&rope, start_char, byte_count).unwrap();
+
+    let segment = &rope.slice(start_char..idx);
+    println!(
+        "bytes_extent: start_char={} byte_count={} end_char={} segment='{}'",
+        start_char, byte_count, idx, segment
+    );
+
     assert_eq!(idx, 2); // UTF-8 boundary respected
 }
 

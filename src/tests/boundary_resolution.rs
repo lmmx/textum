@@ -40,11 +40,19 @@ fn test_resolve_include_mode() {
 fn test_resolve_extend_lines() {
     let rope = Rope::from_str("one\ntwo\nthree\nfour\n");
     let target = Target::Line(1);
-    let boundary = Boundary::new(target, BoundaryMode::Extend(Extent::Lines(2)));
+    let boundary = Boundary::new(target.clone(), BoundaryMode::Extend(Extent::Lines(2)));
 
     let resolved = boundary.resolve(&rope).unwrap();
+
+    let start = rope.line_to_char(target.resolve(&rope).unwrap() + 1); // after target line
     let expected_end = rope.line_to_char(1 + 2); // extend 2 lines from line 1
-    let start = rope.line_to_char(2); // after target line
+    let segment = &rope.slice(resolved.start..resolved.end);
+
+    println!(
+        "resolve_extend_lines: start={} end={} expected_end={} segment='{}'",
+        resolved.start, resolved.end, expected_end, segment
+    );
+
     assert_eq!(resolved.start, start);
     assert_eq!(resolved.end, expected_end);
 }
@@ -66,8 +74,16 @@ fn test_resolve_extend_bytes() {
     let target = Target::Char(6); // the space before emoji
     let boundary = Boundary::new(target, BoundaryMode::Extend(Extent::Bytes(4)));
 
-    let resolved = boundary.resolve(&rope).unwrap();
-    // advancing 4 bytes into multi-byte emoji rounds to next char
+    let resolved = boundary.resolve(&rope);
+    println!("resolve_extend_bytes: result={:?}", resolved);
+
+    let resolved = resolved.unwrap();
+    let segment = &rope.slice(resolved.start..resolved.end);
+    println!(
+        "start={} end={} segment='{}'",
+        resolved.start, resolved.end, segment
+    );
+
     assert_eq!(resolved.start, 7);
     assert_eq!(resolved.end, 8);
 }
@@ -97,6 +113,11 @@ fn test_extend_matching_invalid() {
     );
 
     let result = boundary.resolve(&rope);
+
+    if let Err(e) = &result {
+        println!("extend_matching_invalid: error={:?}", e);
+    }
+
     assert!(matches!(
         result,
         Err(crate::snip::boundary::BoundaryError::InvalidExtent)
