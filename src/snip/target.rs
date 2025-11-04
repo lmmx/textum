@@ -1,11 +1,11 @@
 //! Target specifications for boundary matching.
 use std::hash::{Hash, Hasher};
 
-#[cfg(feature = "regex")]
-use crate::snip::error::TargetError;
-
 pub mod error;
 pub mod matching;
+
+#[cfg(feature = "regex")]
+use error::TargetError;
 
 #[derive(Debug, Clone)]
 /// Defines what text position or pattern a boundary matches.

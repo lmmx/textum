@@ -3,7 +3,16 @@ use std::hash::Hash;
 
 /// Boundary specification and treatment modes.
 pub mod boundary;
-pub use boundary::{Boundary, BoundaryMode, Extent};
+/// Error types for snippet operations.
+pub mod error;
+/// Snippet replacement operations.
+pub mod replacement;
+/// Snippet resolution to rope indices.
+pub mod resolution;
+
+pub use boundary::{Boundary, BoundaryError, BoundaryMode, Extent};
+pub use error::*;
+pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// Specifies a text range through boundary markers or positions.
