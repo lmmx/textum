@@ -65,10 +65,13 @@ impl Snippet {
             Snippet::Between { start, end } => {
                 let start_res = start.resolve(rope)?;
                 let end_res = end.resolve(rope)?;
-                validate_range(start_res.end, end_res.start, rope)?;
+
+                // Use start_res.start as the beginning (captures Include mode properly)
+                // Use end_res.end as the ending (captures Include mode properly)
+                validate_range(start_res.start, end_res.end, rope)?;
                 Ok(SnippetResolution {
-                    start: start_res.end,
-                    end: end_res.start,
+                    start: start_res.start,
+                    end: end_res.end,
                 })
             }
             Snippet::All => Ok(SnippetResolution {

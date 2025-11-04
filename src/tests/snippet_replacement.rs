@@ -64,7 +64,7 @@ fn test_replace_between_boundaries() {
 }
 
 #[test]
-fn test_replace_from_boundary_to_eof() {
+fn test_replace_from_boundary_to_eof_exclude() {
     // Tests Snippet::From replaces from boundary to end of file
     // Verifies EOF handling in replacement
     let rope = Rope::from_str("keep this\nreplace from here\nand this too\n");
@@ -74,7 +74,28 @@ fn test_replace_from_boundary_to_eof() {
 
     let result = snippet.replace(&rope, "\nnew ending").unwrap();
 
-    assert_eq!(result.to_string(), "keep this\nnew ending");
+    // Exclude mode: starts AFTER the matched text, so "replace from here\n" remains
+    assert_eq!(
+        result.to_string(),
+        "keep this\nreplace from here\nnew ending"
+    );
+}
+
+#[test]
+fn test_replace_from_boundary_to_eof_include() {
+    // Tests Snippet::From replaces from boundary to end of file
+    // Verifies EOF handling in replacement
+    let rope = Rope::from_str("keep this\nreplace from here\nand this too\n");
+    let target = Target::Literal("replace from here".to_string());
+    let boundary = Boundary::new(target, BoundaryMode::Include);
+    let snippet = Snippet::From(boundary);
+
+    let result = snippet.replace(&rope, "\nnew ending").unwrap();
+
+    assert_eq!(
+        result.to_string(),
+        "keep this\nreplace from here\nnew ending"
+    );
 }
 
 #[test]
