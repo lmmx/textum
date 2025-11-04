@@ -1,4 +1,4 @@
-use crate::snip::boundary::{
+use crate::snip::snippet::boundary::{
     calculate_bytes_extent, calculate_chars_extent, calculate_lines_extent,
     calculate_matching_extent, BoundaryError,
 };

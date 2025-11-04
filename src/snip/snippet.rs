@@ -3,13 +3,15 @@ use std::hash::Hash;
 
 /// Boundary specification and treatment modes.
 pub mod boundary;
+/// Error types for snippet operations.
 pub mod error;
+/// Snippet replacement operations.
 pub mod replacement;
+/// Snippet resolution to rope indices.
 pub mod resolution;
 
-pub use boundary::{Boundary, BoundaryMode, Extent};
+pub use boundary::{Boundary, BoundaryError, BoundaryMode, Extent};
 pub use error::*;
-pub use replacement::*;
 pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

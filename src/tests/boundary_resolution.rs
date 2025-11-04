@@ -1,4 +1,4 @@
-use crate::snip::boundary::{Boundary, BoundaryMode, Extent};
+use crate::snip::snippet::boundary::{Boundary, BoundaryMode, Extent};
 use crate::snip::Target;
 use ropey::Rope;
 
@@ -159,7 +159,7 @@ fn test_extend_matching_invalid() {
 
     assert!(matches!(
         result,
-        Err(crate::snip::boundary::BoundaryError::InvalidExtent)
+        Err(crate::snip::BoundaryError::InvalidExtent)
     ));
 }
 
@@ -172,6 +172,6 @@ fn test_extend_out_of_bounds() {
     let result = boundary.resolve(&rope);
     assert!(matches!(
         result,
-        Err(crate::snip::boundary::BoundaryError::ExtentOutOfBounds)
+        Err(crate::snip::BoundaryError::ExtentOutOfBounds)
     ));
 }
