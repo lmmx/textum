@@ -198,7 +198,8 @@ pub fn calculate_bytes_extent(
 ///
 /// ```rust
 /// # use ropey::Rope;
-/// # use textum::snip::snippet::boundary::{calculate_matching_extent, Target};
+/// # use textum::snip::snippet::boundary::calculate_matching_extent;
+/// # use textum::snip::Target;
 /// let rope = Rope::from("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6");
 /// let target = Target::Literal("\n".to_string());
 /// assert_eq!(calculate_matching_extent(&rope, 20, 3, &target).unwrap(), 42);
