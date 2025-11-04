@@ -1,4 +1,4 @@
-use crate::snip::{Boundary, boundary::BoundaryError, BoundaryMode, Extent};
+use crate::snip::{boundary::BoundaryError, Boundary, BoundaryMode, Extent};
 use ropey::Rope;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

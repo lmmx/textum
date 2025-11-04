@@ -49,6 +49,82 @@ impl Target {
             Target::Position { line, col } => resolve_position(rope, *line, *col),
         }
     }
+
+    /// Resolves this target into a `(start, end)` range in character indices.
+    /// The end is exclusive, matching Rust's slicing semantics.
+    pub fn resolve_range(&self, rope: &Rope) -> Result<(usize, usize), TargetError> {
+        match self {
+            // Efficient literal search directly on Rope chunks
+            Target::Literal(s) => {
+                if s.is_empty() {
+                    return Ok((0, 0));
+                }
+
+                // We'll slide over rope chunks and track char indices
+                let mut global_char_idx = 0;
+                let needle_chars: Vec<char> = s.chars().collect();
+                let needle_len = needle_chars.len();
+
+                for chunk in rope.chunks() {
+                    let chunk_chars: Vec<char> = chunk.chars().collect();
+                    let mut i = 0;
+                    while i + needle_len <= chunk_chars.len() {
+                        if chunk_chars[i..i + needle_len] == needle_chars[..] {
+                            let start = global_char_idx + i;
+                            let end = start + needle_len;
+                            return Ok((start, end));
+                        }
+                        i += 1;
+                    }
+                    global_char_idx += chunk_chars.len();
+                }
+
+                Err(TargetError::NotFound)
+            }
+
+            Target::Line(line_idx) => {
+                if *line_idx >= rope.len_lines() {
+                    return Err(TargetError::InvalidPosition {
+                        line: *line_idx,
+                        col: None,
+                    });
+                }
+                let start = rope.line_to_char(*line_idx);
+                let end = if *line_idx + 1 < rope.len_lines() {
+                    rope.line_to_char(*line_idx + 1)
+                } else {
+                    rope.len_chars()
+                };
+                Ok((start, end))
+            }
+
+            Target::Char(n) => {
+                if *n >= rope.len_chars() {
+                    Err(TargetError::OutOfBounds)
+                } else {
+                    Ok((*n, *n + 1))
+                }
+            }
+
+            Target::Position { line, col } => {
+                // Reuse your existing resolve_position logic.
+                let start = resolve_position(rope, *line, *col)?;
+                Ok((start, start))
+            }
+
+            #[cfg(feature = "regex")]
+            Target::Pattern { regex, .. } => {
+                use regex_cursor::{Input as RegexInput, RopeyCursor};
+                let cursor = RopeyCursor::new(rope.slice(..));
+                let input = RegexInput::new(cursor);
+                if let Some(m) = regex.find(input) {
+                    Ok((m.start(), m.end()))
+                } else {
+                    Err(TargetError::NotFound)
+                }
+            }
+        }
+    }
 }
 
 /// Resolves a literal string target to its first occurrence in the rope.
