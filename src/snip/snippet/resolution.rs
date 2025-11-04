@@ -65,17 +65,14 @@ impl Snippet {
                 let to_end = match &boundary.mode {
                     BoundaryMode::Exclude => target_start, // Before the target
                     BoundaryMode::Include => target_end,   // After the target
-                    BoundaryMode::Extend(extent) => {
-                        let extended = match extent {
-                            Extent::Lines(n) => calculate_lines_extent(rope, target_end, *n)?,
-                            Extent::Chars(n) => calculate_chars_extent(rope, target_end, *n)?,
-                            Extent::Bytes(n) => calculate_bytes_extent(rope, target_end, *n)?,
-                            Extent::Matching(n, t) => {
-                                calculate_matching_extent(rope, target_end, *n, t)?
-                            }
-                        };
-                        extended
-                    }
+                    BoundaryMode::Extend(extent) => match extent {
+                        Extent::Lines(n) => calculate_lines_extent(rope, target_end, *n)?,
+                        Extent::Chars(n) => calculate_chars_extent(rope, target_end, *n)?,
+                        Extent::Bytes(n) => calculate_bytes_extent(rope, target_end, *n)?,
+                        Extent::Matching(n, t) => {
+                            calculate_matching_extent(rope, target_end, *n, t)?
+                        }
+                    },
                 };
 
                 validate_range(0, to_end, rope)?;
@@ -100,15 +97,15 @@ impl Snippet {
                     BoundaryMode::Include => end_target_end,   // After the target
                     BoundaryMode::Extend(extent) => {
                         // Extend mode: start from end of target and extend
-                        let extended = match extent {
+
+                        match extent {
                             Extent::Lines(n) => calculate_lines_extent(rope, end_target_end, *n)?,
                             Extent::Chars(n) => calculate_chars_extent(rope, end_target_end, *n)?,
                             Extent::Bytes(n) => calculate_bytes_extent(rope, end_target_end, *n)?,
                             Extent::Matching(n, t) => {
                                 calculate_matching_extent(rope, end_target_end, *n, t)?
                             }
-                        };
-                        extended
+                        }
                     }
                 };
 
