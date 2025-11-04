@@ -1,3 +1,4 @@
+use crate::snip::target::error::TargetError;
 use crate::snip::BoundaryError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,5 +27,12 @@ pub enum SnippetError {
 impl From<BoundaryError> for SnippetError {
     fn from(err: BoundaryError) -> Self {
         SnippetError::BoundaryError(err)
+    }
+}
+
+impl From<TargetError> for SnippetError {
+    fn from(err: TargetError) -> Self {
+        // Wrap TargetError in BoundaryError, then in SnippetError
+        SnippetError::BoundaryError(BoundaryError::TargetError(err))
     }
 }

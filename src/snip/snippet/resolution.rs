@@ -1,5 +1,10 @@
-use super::{Snippet, SnippetError};
+use super::{Extent, Snippet, SnippetError};
 use ropey::Rope;
+
+use super::boundary::{
+    calculate_bytes_extent, calculate_chars_extent, calculate_lines_extent,
+    calculate_matching_extent, BoundaryMode,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// The concrete start and end indices of a resolved snippet within a [`Rope`].
@@ -63,15 +68,37 @@ impl Snippet {
                 })
             }
             Snippet::Between { start, end } => {
-                let start_res = start.resolve(rope)?;
-                let end_res = end.resolve(rope)?;
+                // For Between semantics:
+                // - Start boundary in Exclude mode: start AFTER the target (use .end)
+                // - Start boundary in Include mode: start AT the target (use .start)
+                // - End boundary in Exclude mode: end BEFORE the target (need target.start)
+                // - End boundary in Include mode: end AFTER the target (use .end)
 
-                // Use start_res.start as the beginning (captures Include mode properly)
-                // Use end_res.end as the ending (captures Include mode properly)
-                validate_range(start_res.start, end_res.end, rope)?;
+                let start_res = start.resolve(rope)?;
+                let (end_target_start, end_target_end) = end.target.resolve_range(rope)?;
+
+                let between_start = start_res.start;
+                let between_end = match &end.mode {
+                    BoundaryMode::Exclude => end_target_start, // Before the target
+                    BoundaryMode::Include => end_target_end,   // After the target
+                    BoundaryMode::Extend(extent) => {
+                        // Extend mode: start from end of target and extend
+                        let extended = match extent {
+                            Extent::Lines(n) => calculate_lines_extent(rope, end_target_end, *n)?,
+                            Extent::Chars(n) => calculate_chars_extent(rope, end_target_end, *n)?,
+                            Extent::Bytes(n) => calculate_bytes_extent(rope, end_target_end, *n)?,
+                            Extent::Matching(n, t) => {
+                                calculate_matching_extent(rope, end_target_end, *n, t)?
+                            }
+                        };
+                        extended
+                    }
+                };
+
+                validate_range(between_start, between_end, rope)?;
                 Ok(SnippetResolution {
-                    start: start_res.start,
-                    end: end_res.end,
+                    start: between_start,
+                    end: between_end,
                 })
             }
             Snippet::All => Ok(SnippetResolution {
