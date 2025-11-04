@@ -3,7 +3,14 @@ use std::hash::Hash;
 
 /// Boundary specification and treatment modes.
 pub mod boundary;
+pub mod error;
+pub mod replacement;
+pub mod resolution;
+
 pub use boundary::{Boundary, BoundaryMode, Extent};
+pub use error::*;
+pub use replacement::*;
+pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// Specifies a text range through boundary markers or positions.

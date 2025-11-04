@@ -87,4 +87,5 @@ pub mod snip;
 pub use composer::PatchSet;
 pub use patch::{Patch, PatchError};
 pub use snip::snippet::boundary::{Boundary, BoundaryMode};
+pub use snip::snippet::{Snippet, SnippetError, SnippetResolution};
 pub use snip::target::Target;
