@@ -83,7 +83,12 @@ impl Snippet {
     pub fn replace(&self, rope: &Rope, replacement: &str) -> Result<Rope, SnippetError> {
         validate_replacement_utf8(replacement)?;
         let resolution = self.resolve(rope)?;
-        apply_replacement(rope, resolution.start, resolution.end, replacement)
+        Ok(apply_replacement(
+            rope,
+            resolution.start,
+            resolution.end,
+            replacement,
+        ))
     }
 }
 
@@ -112,7 +117,7 @@ impl Snippet {
 /// assert!(validate_replacement_utf8("hello").is_ok());
 /// assert!(validate_replacement_utf8("hello\0world").is_err());
 /// ```
-fn validate_replacement_utf8(s: &str) -> Result<(), SnippetError> {
+pub fn validate_replacement_utf8(s: &str) -> Result<(), SnippetError> {
     // str is already UTF-8 valid by Rust's type system, but check for any
     // additional validation requirements (e.g., no null bytes, specific encoding)
     if s.contains('\0') {
@@ -151,27 +156,23 @@ fn validate_replacement_utf8(s: &str) -> Result<(), SnippetError> {
 /// let rope = Rope::from_str("hello world");
 ///
 /// // Replace "world" with "rust"
-/// let result = apply_replacement(&rope, 6, 11, "rust").unwrap();
+/// let result = apply_replacement(&rope, 6, 11, "rust");
 /// assert_eq!(result.to_string(), "hello rust");
 ///
 /// // Insert at position (zero-width range)
-/// let result = apply_replacement(&rope, 5, 5, ",").unwrap();
+/// let result = apply_replacement(&rope, 5, 5, ",");
 /// assert_eq!(result.to_string(), "hello, world");
 ///
 /// // Delete range (empty replacement)
-/// let result = apply_replacement(&rope, 5, 11, "").unwrap();
+/// let result = apply_replacement(&rope, 5, 11, "");
 /// assert_eq!(result.to_string(), "hello");
 /// ```
-fn apply_replacement(
-    rope: &Rope,
-    start: usize,
-    end: usize,
-    replacement: &str,
-) -> Result<Rope, SnippetError> {
+#[must_use]
+pub fn apply_replacement(rope: &Rope, start: usize, end: usize, replacement: &str) -> Rope {
     let mut new_rope = rope.clone();
     new_rope.remove(start..end);
     new_rope.insert(start, replacement);
-    Ok(new_rope)
+    new_rope
 }
 
 #[cfg(test)]
