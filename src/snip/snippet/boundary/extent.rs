@@ -160,7 +160,7 @@ pub fn calculate_bytes_extent(
     if char_start_byte < new_byte {
         // new_byte is inside the character that starts at char_idx -> move to next char
         let next = char_idx.saturating_add(1);
-        if next > rope.len_chars() {
+        if next >= rope.len_chars() {
             return Err(BoundaryError::ExtentOutOfBounds);
         }
         Ok(next)
@@ -229,7 +229,7 @@ pub fn calculate_matching_extent(
         Target::Pattern { .. } => {} // Valid case: Pattern
     }
 
-    if from > rope.len_chars() {
+    if from >= rope.len_chars() {
         return Err(BoundaryError::ExtentOutOfBounds);
     }
 
