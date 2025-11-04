@@ -65,9 +65,9 @@ fn test_resolve_from_boundary_to_eof() {
 }
 
 #[test]
-fn test_resolve_to_boundary_from_bof() {
-    // Tests Snippet::To resolves from 0 to boundary start
-    // Verifies that To variant correctly starts at BOF
+fn test_resolve_to_boundary_from_bof_include() {
+    // Tests Snippet::To with Include mode includes the boundary line
+    // Verifies that To variant with Include goes up to and includes the target
     let rope = Rope::from_str("line1\nline2\nline3\n");
     let target = Target::Line(2);
     let boundary = Boundary::new(target, BoundaryMode::Include);
@@ -76,13 +76,35 @@ fn test_resolve_to_boundary_from_bof() {
     let resolution = snippet.resolve(&rope).unwrap();
 
     let bof = 0;
+    let line_end = rope.line_to_char(3); // End of "line3\n" (or start of line 3 if it existed)
+
+    assert_eq!(resolution.start, bof);
+    assert_eq!(resolution.end, line_end); // Should be 18, not 12
+    assert_eq!(
+        rope.slice(resolution.start..resolution.end).to_string(),
+        "line1\nline2\nline3\n" // Includes all three lines
+    );
+}
+
+#[test]
+fn test_resolve_to_boundary_from_bof_exclude() {
+    // Tests Snippet::To with Exclude mode stops before the boundary
+    // Verifies that To variant with Exclude stops at the start of the target
+    let rope = Rope::from_str("line1\nline2\nline3\n");
+    let target = Target::Line(2);
+    let boundary = Boundary::new(target, BoundaryMode::Exclude);
+    let snippet = Snippet::To(boundary);
+
+    let resolution = snippet.resolve(&rope).unwrap();
+
+    let bof = 0;
     let line_start = rope.line_to_char(2); // Start of "line3\n"
 
     assert_eq!(resolution.start, bof);
-    assert_eq!(resolution.end, line_start);
+    assert_eq!(resolution.end, line_start); // Should be 12
     assert_eq!(
         rope.slice(resolution.start..resolution.end).to_string(),
-        "line1\nline2\n"
+        "line1\nline2\n" // Only first two lines
     );
 }
 

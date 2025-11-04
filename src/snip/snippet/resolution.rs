@@ -60,11 +60,28 @@ impl Snippet {
                 })
             }
             Snippet::To(boundary) => {
-                let res = boundary.resolve(rope)?;
-                validate_range(0, res.start, rope)?;
+                let (target_start, target_end) = boundary.target.resolve_range(rope)?;
+
+                let to_end = match &boundary.mode {
+                    BoundaryMode::Exclude => target_start, // Before the target
+                    BoundaryMode::Include => target_end,   // After the target
+                    BoundaryMode::Extend(extent) => {
+                        let extended = match extent {
+                            Extent::Lines(n) => calculate_lines_extent(rope, target_end, *n)?,
+                            Extent::Chars(n) => calculate_chars_extent(rope, target_end, *n)?,
+                            Extent::Bytes(n) => calculate_bytes_extent(rope, target_end, *n)?,
+                            Extent::Matching(n, t) => {
+                                calculate_matching_extent(rope, target_end, *n, t)?
+                            }
+                        };
+                        extended
+                    }
+                };
+
+                validate_range(0, to_end, rope)?;
                 Ok(SnippetResolution {
                     start: 0,
-                    end: res.start,
+                    end: to_end,
                 })
             }
             Snippet::Between { start, end } => {
