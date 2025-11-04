@@ -449,6 +449,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-cursor"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0497c781d2f982ae8284d2932aee6a877e58a4541daa5e8fadc18cc75c23a61d"
+dependencies = [
+ "log",
+ "memchr",
+ "regex-automata",
+ "regex-syntax",
+ "ropey",
+]
+
+[[package]]
 name = "regex-syntax"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -587,6 +600,7 @@ dependencies = [
  "facet-args",
  "facet-json",
  "predicates",
+ "regex-cursor",
  "ropey",
  "tempfile",
  "tree-sitter",

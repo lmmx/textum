@@ -6,6 +6,9 @@ path = "src/cli.rs"
 ropey = "1.6"
 
 # Optional dependencies
+# -- Regex
+regex-cursor = { optional = true, version = "0.1" }
+
 # -- Facet
 facet = { optional = true, version = "0.30.0" }
 facet-args = { optional = true, version = "0.30.0" }
@@ -62,13 +65,14 @@ cargo = "deny"
 pedantic = "deny"
 
 [lints.rust]
+missing_docs = "deny"
 unsafe_code = "forbid"
-# missing_docs = "deny"
 
 [features]
 # --- Patch field gating features
-line_tol = []    # max_line_drift field
-symbol_path = [] # symbol_path field
+line_tol = []                # max_line_drift field
+regex = ["dep:regex-cursor"]
+symbol_path = []             # symbol_path field
 
 all-patch-fields = ["line_tol", "symbol_path"]
 

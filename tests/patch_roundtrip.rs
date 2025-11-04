@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use predicates::prelude::*;
 use std::fs;
 use tempfile::NamedTempFile;

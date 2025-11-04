@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(feature = "cli")]
 mod cli_integration {
     use assert_cmd::cargo_bin_cmd;

@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(feature = "json")]
 #[test]
 fn example() -> Result<(), textum::PatchError> {
