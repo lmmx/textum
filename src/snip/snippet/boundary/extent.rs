@@ -92,7 +92,7 @@ pub fn calculate_bytes_extent(
 ///
 /// Supported target matchers:
 /// - `Target::Literal` (works by scanning chunks)
-/// - `Target::Pattern` (uses regex_cursor + RopeyCursor when the `regex` feature is enabled)
+/// - `Target::Pattern` (uses `regex_cursor` + `RopeyCursor` when the `regex` feature is enabled)
 ///
 /// Other `Target` variants are considered invalid for "Matching" extent and will produce
 /// `BoundaryError::InvalidExtent`. This keeps behaviour explicit and lets you expand later.
@@ -127,17 +127,13 @@ pub fn calculate_matching_extent(
                 }
 
                 // Iterate chunks starting from the chunk that contains `cursor`.
-                let (mut chunks_iter, mut chunk_byte_idx, mut chunk_char_idx, _) =
+                let (chunks_iter, mut chunk_byte_idx, mut chunk_char_idx, _) =
                     rope.chunks_at_char(cursor);
 
                 let mut found = false;
-                while let Some(chunk) = chunks_iter.next() {
+                for chunk in chunks_iter {
                     // compute char offset inside this chunk where we begin searching
-                    let local_char_offset = if cursor > chunk_char_idx {
-                        cursor - chunk_char_idx
-                    } else {
-                        0
-                    };
+                    let local_char_offset = cursor.saturating_sub(chunk_char_idx);
 
                     // Convert local_char_offset (chars) to a byte offset inside `chunk`.
                     // Use char_indices to find the byte offset of that char.
