@@ -154,7 +154,7 @@ fn test_extend_matching_invalid() {
     let result = boundary.resolve(&rope);
 
     if let Err(e) = &result {
-        println!("extend_matching_invalid: error={:?}", e);
+        println!("extend_matching_invalid: error={e:?}");
     }
 
     assert!(matches!(

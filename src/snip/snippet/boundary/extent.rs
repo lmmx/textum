@@ -214,6 +214,21 @@ pub fn calculate_matching_extent(
         return Ok(from);
     }
 
+    // Check for invalid target types FIRST
+    match target {
+        Target::Literal(needle) if needle.is_empty() => {
+            // Ambiguous: empty needle would match everywhere; treat as invalid for extent.
+            return Err(BoundaryError::InvalidExtent);
+        }
+        Target::Line(_) | Target::Char(_) | Target::Position { .. } => {
+            // Other Target kinds not meaningful for "Matching" (treat as invalid)
+            return Err(BoundaryError::InvalidExtent);
+        }
+        Target::Literal(_) => {} // Valid case: Literal with content
+        #[cfg(feature = "regex")]
+        Target::Pattern { .. } => {} // Valid case: Pattern
+    }
+
     if from > rope.len_chars() {
         return Err(BoundaryError::ExtentOutOfBounds);
     }
@@ -229,11 +244,6 @@ pub fn calculate_matching_extent(
 
         match target {
             Target::Literal(needle) => {
-                if needle.is_empty() {
-                    // Ambiguous: empty needle would match everywhere; treat as invalid for extent.
-                    return Err(BoundaryError::InvalidExtent);
-                }
-
                 // Iterate chunks starting from the chunk that contains `cursor`.
                 let (chunks_iter, mut chunk_byte_idx, mut chunk_char_idx, _) =
                     rope.chunks_at_char(cursor);
@@ -304,8 +314,7 @@ pub fn calculate_matching_extent(
                 }
             }
 
-            // Other Target kinds not meaningful for "Matching" (treat as invalid)
-            _ => return Err(BoundaryError::InvalidExtent),
+            _ => unreachable!(), // {Line|Char|Position} can never reach here due to the early return
         }
     }
 

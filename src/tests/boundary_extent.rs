@@ -53,8 +53,7 @@ fn test_calculate_bytes_extent_success() {
 
     let segment = &rope.slice(start_char..idx);
     println!(
-        "bytes_extent: start_char={} byte_count={} end_char={} segment='{}'",
-        start_char, byte_count, idx, segment
+        "bytes_extent: start_char={start_char} byte_count={byte_count} end_char={idx} segment='{segment}'",
     );
 
     assert_eq!(idx, 2); // UTF-8 boundary respected
