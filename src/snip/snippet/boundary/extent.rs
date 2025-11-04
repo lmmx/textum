@@ -10,6 +10,7 @@ use crate::snip::Target;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Measures distance for boundary extension.
 pub enum Extent {
     /// Extends by a line count.

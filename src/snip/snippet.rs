@@ -19,6 +19,7 @@ pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Specifies a text range through boundary markers or positions.
 ///
 /// The exceptions are the `Between` variant (which takes two `Boundary` arguments for the start and

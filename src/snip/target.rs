@@ -12,6 +12,7 @@ use error::TargetError;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Defines what text position or pattern a boundary matches.
 pub enum Target {
     /// An exact string to match.
