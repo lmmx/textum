@@ -5,12 +5,47 @@ use super::{
 use ropey::Rope;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// The concrete start and end indices of a resolved boundary within a [`Rope`].
+///
+/// Represents the absolute character range of a snippet boundary once all targets and extents have
+/// been resolved to numeric indices.
 pub struct BoundaryResolution {
+    /// The starting character index of the resolved boundary.
     pub start: usize,
+    /// The ending character index of the resolved boundary (exclusive).
     pub end: usize,
 }
 
 impl Boundary {
+    /// Resolves this boundary into a pair of absolute character indices.
+    ///
+    /// The resolution process combines the boundary’s base target with its
+    /// configured extent, producing a concrete `(start, end)` range suitable
+    /// for slicing a [`Rope`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`BoundaryError::TargetError`] if the base target could not
+    /// be resolved, or a [`BoundaryError::ExtentOutOfBounds`] /
+    /// [`BoundaryError::InvalidExtent`] if the extent specification was
+    /// invalid or extended past the end of the rope.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ropey::Rope;
+    /// use textum::snip::snippet::boundary::BoundaryResolution;
+    /// use textum::Target;
+    ///
+    /// let rope = Rope::from_str("alpha\nbeta\ngamma\n");
+    /// let target = Target::Line(1);
+    /// let start = target.resolve(&rope).unwrap();
+    /// let end = start + 5;
+    /// let boundary = BoundaryResolution { start, end };
+    ///
+    /// assert_eq!(boundary.start, 6);
+    /// assert_eq!(boundary.end, 11);
+    /// ```
     pub fn resolve(&self, rope: &Rope) -> Result<BoundaryResolution, BoundaryError> {
         let (start, end) = self
             .target
