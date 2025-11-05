@@ -1,7 +1,9 @@
+[working-directory: 'crates/textum-py']
 py-publish *args:
   $(uv python find) -m pdm publish -u __token__ -P $(keyring get PYPIRC_TOKEN "") {{args}}
 
 # Release a new version, pass --help for options to `uv version --bump`
+[working-directory: 'crates/textum-py']
 py-release bump_level="patch":
     #!/usr/bin/env -S echo-comment --shell-flags="-e" --color bright-green
 
@@ -38,6 +40,7 @@ py-release bump_level="patch":
     # 🚀 Push the commit tag to the remote
     git push origin "py-$new_version"
 
+[working-directory: 'crates/textum-py']
 ship-wheels *dl_args:
   mkdir -p dist
   rm -rf dist/*
