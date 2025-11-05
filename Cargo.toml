@@ -18,8 +18,8 @@ resolver = "2"
 
 [workspace.dependencies]
 # Internal crates
-textum = { path = "crates/textum", version = "0.1.1" }
-textum-py = { path = "crates/textum-py", version = "0.1.1" }
+textum = { path = "crates/textum", version = "0.1.2" }
+textum-py = { path = "crates/textum-py", version = "0.1.2" }
 
 pyo3 = { features = ["abi3-py39", "extension-module"], version = "0.25" }
 
