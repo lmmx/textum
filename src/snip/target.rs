@@ -1,6 +1,9 @@
 //! Target specifications for boundary matching.
 use std::hash::{Hash, Hasher};
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 pub mod error;
 pub mod matching;
 
@@ -8,18 +11,15 @@ pub mod matching;
 use error::TargetError;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Defines what text position or pattern a boundary matches.
 pub enum Target {
     /// An exact string to match.
     Literal(String),
     #[cfg(feature = "regex")]
     /// Matches a regular expression pattern.
-    Pattern {
-        /// The original pattern string.
-        pattern: String,
-        /// The compiled regex.
-        regex: regex_cursor::engines::meta::Regex,
-    },
+    Pattern(String),
     /// Matches an absolute line number.
     Line(usize),
     /// Matches an absolute character index.
@@ -42,9 +42,10 @@ impl Target {
     #[cfg(feature = "regex")]
     pub fn pattern(pattern: impl Into<String>) -> Result<Self, TargetError> {
         let pattern = pattern.into();
-        let regex = regex_cursor::engines::meta::Regex::new(&pattern)
+        // Validate that it compiles
+        regex_cursor::engines::meta::Regex::new(&pattern)
             .map_err(|e| TargetError::InvalidPattern(e.to_string()))?;
-        Ok(Target::Pattern { pattern, regex })
+        Ok(Target::Pattern(pattern))
     }
 }
 
@@ -55,7 +56,7 @@ impl PartialEq for Target {
         match (self, other) {
             (Target::Literal(a), Target::Literal(b)) => a == b,
             #[cfg(feature = "regex")]
-            (Target::Pattern { pattern: a, .. }, Target::Pattern { pattern: b, .. }) => a == b,
+            (Target::Pattern(a), Target::Pattern(b)) => a == b,
             (Target::Line(a), Target::Line(b)) => a == b,
             (Target::Char(a), Target::Char(b)) => a == b,
             (Target::Position { line: l1, col: c1 }, Target::Position { line: l2, col: c2 }) => {
@@ -74,9 +75,9 @@ impl Hash for Target {
                 s.hash(state);
             }
             #[cfg(feature = "regex")]
-            Target::Pattern { pattern, .. } => {
+            Target::Pattern(s) => {
                 1u8.hash(state);
-                pattern.hash(state);
+                s.hash(state);
             }
             Target::Line(n) => {
                 2u8.hash(state);

@@ -8,59 +8,45 @@
 use facet::Facet;
 use ropey::Rope;
 
+pub mod error;
+pub use error::PatchError;
+
+use crate::snip::snippet::{Boundary, BoundaryMode, Snippet};
+use crate::snip::target::Target;
+
 /// A single atomic patch operation on a file.
 ///
-/// Patches operate at character-level granularity and can represent insertions, deletions,
-/// or replacements. Character positions are 0-indexed and represent positions in the file
-/// as a sequence of Unicode scalar values.
+/// Patches operate through the Snippet system, providing flexible target matching
+/// and boundary semantics. Character positions are 0-indexed and represent positions
+/// in the file as a sequence of Unicode scalar values.
 ///
 /// # Examples
 ///
 /// ```
-/// use textum::Patch;
+/// use textum::{Patch, Target, Boundary, BoundaryMode, Snippet};
 /// use ropey::Rope;
 ///
-/// // Delete characters 5-10
-/// let mut rope = Rope::from_str("hello world friend");
-/// let delete = Patch {
-///     file: "main.rs".to_string(),
-///     range: (5, 11),
-///     replacement: None,
-///     #[cfg(feature = "symbol_path")]
-///     symbol_path: None,
-///     #[cfg(feature = "line_tol")]
-///     max_line_drift: None,
-/// };
-/// delete.apply(&mut rope).unwrap();
-/// assert_eq!(rope.to_string(), "hello friend");
-///
-/// // Insert text at position 5
-/// let mut rope = Rope::from_str("helloworld");
-/// let insert = Patch {
-///     file: "main.rs".to_string(),
-///     range: (5, 5),
-///     replacement: Some(" ".into()),
-///     #[cfg(feature = "symbol_path")]
-///     symbol_path: None,
-///     #[cfg(feature = "line_tol")]
-///     max_line_drift: None,
-/// };
-/// insert.apply(&mut rope).unwrap();
-/// assert_eq!(rope.to_string(), "hello world");
-///
-/// // Replace characters 6-11 with new text
+/// // Replace using literal target
 /// let mut rope = Rope::from_str("hello world");
-/// let replace = Patch {
-///     file: "main.rs".to_string(),
-///     range: (6, 11),
-///     replacement: Some("rust".into()),
-///     #[cfg(feature = "symbol_path")]
-///     symbol_path: None,
-///     #[cfg(feature = "line_tol")]
-///     max_line_drift: None,
-/// };
-/// replace.apply(&mut rope).unwrap();
+/// let patch = Patch::from_literal_target(
+///     "main.rs".to_string(),
+///     "world",
+///     BoundaryMode::Include,
+///     "rust",
+/// );
+/// patch.apply(&mut rope).unwrap();
 /// assert_eq!(rope.to_string(), "hello rust");
+///
+/// // Delete using line range
+/// let mut rope = Rope::from_str("line1\nline2\nline3\n");
+/// let patch = Patch::from_line_range(
+///     "main.rs".to_string(),
+///     1,
+///     2,
+///     "",
+/// );
+/// patch.apply(&mut rope).unwrap();
+/// assert_eq!(rope.to_string(), "line1\nline3\n");
 /// ```
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "facet", derive(Facet))]
@@ -68,93 +54,31 @@ pub struct Patch {
     /// File path this patch applies to.
     pub file: String,
 
-    /// Character index range to replace (start, end).
-    ///
-    /// - For insertions: start == end
-    /// - For deletions: replacement is None
-    /// - For replacements: start < end and replacement is Some
-    ///
-    /// Indices are 0-based and count Unicode scalar values, not bytes.
-    pub range: (usize, usize),
+    /// Snippet defining the target range for this patch.
+    pub snippet: Snippet,
 
-    /// Replacement text to insert at the start of the range (nullable, required).
+    /// Replacement text to insert at the resolved range.
     ///
-    /// If None, this is a pure deletion. If Some, the range is removed and this text
-    /// is inserted in its place.
-    // pub replacement: Option<Text>,
-    pub replacement: Option<String>,
+    /// Empty string performs deletion of the resolved range.
+    pub replacement: String,
 
-    /// Optional (nullable and non-required) symbol path for robust positioning.
-    ///
-    /// When provided, allows the patch to be relocated if the exact character positions
-    /// have shifted but the syntactic context remains identifiable. For example,
-    /// `vec!["mod foo", "fn bar"]` identifies a function bar inside module foo.
+    /// Optional symbol path for robust positioning (non-functional, reserved for future use).
     #[cfg_attr(feature = "facet", facet(default))]
     #[cfg(feature = "symbol_path")]
     pub symbol_path: Option<Vec<String>>,
-
-    /// Optional (nullable and non-required) maximum line drift for fuzzy matching.
-    ///
-    /// When provided, the patch will search within this many lines of the target position
-    /// to find a matching context. This allows patches to remain valid even when unrelated
-    /// code changes have shifted line numbers.
-    #[cfg_attr(feature = "facet", facet(default))]
-    #[cfg(feature = "line_tol")]
-    pub max_line_drift: Option<usize>,
-}
-
-/// Errors that can occur when applying patches.
-#[derive(Debug)]
-pub enum PatchError {
-    /// The patch range exceeds the file's character count.
-    RangeOutOfBounds,
-
-    /// The target file could not be found or read.
-    FileNotFound,
-
-    /// An I/O error occurred while reading or writing files.
-    IoError(std::io::Error),
-}
-
-impl std::fmt::Display for PatchError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::RangeOutOfBounds => write!(f, "Patch range exceeds file bounds"),
-            Self::FileNotFound => write!(f, "Target file not found"),
-            Self::IoError(e) => write!(f, "I/O error: {e}"),
-        }
-    }
-}
-
-impl std::error::Error for PatchError {}
-
-impl From<std::io::Error> for PatchError {
-    fn from(e: std::io::Error) -> Self {
-        Self::IoError(e)
-    }
-}
-
-#[cfg(feature = "json")]
-impl From<facet_json::DeserError<'_>> for PatchError {
-    fn from(e: facet_json::DeserError<'_>) -> Self {
-        Self::IoError(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            e.to_string(),
-        ))
-    }
 }
 
 impl Patch {
     /// Apply this patch to a rope in-place.
     ///
-    /// The rope is modified directly by removing the specified range and inserting the
-    /// replacement text (if any). Changes are applied atomically - if the patch cannot
-    /// be applied (e.g. due to out of bounds range), the rope is left unchanged.
+    /// The rope is modified by resolving the snippet to a character range, then
+    /// removing that range and inserting the replacement text. Changes are applied
+    /// atomically - if the patch cannot be applied, the rope is left unchanged.
     ///
     /// # Errors
     ///
-    /// Returns `PatchError::RangeOutOfBounds` if the patch range extends beyond the
-    /// rope's character count.
+    /// Returns `PatchError` if the snippet cannot be resolved or if the resolved
+    /// range extends beyond the rope's character count.
     ///
     /// # Examples
     ///
@@ -163,37 +87,119 @@ impl Patch {
     /// use textum::Patch;
     ///
     /// let mut rope = Rope::from_str("hello world");
-    /// let patch = Patch {
-    ///     file: "test.txt".to_string(),
-    ///     range: (6, 11),
-    ///     replacement: Some("rust".into()),
-    ///     #[cfg(feature = "symbol_path")]
-    ///     symbol_path: None,
-    ///     #[cfg(feature = "line_tol")]
-    ///     max_line_drift: None,
-    /// };
+    /// let patch = Patch::from_literal_target(
+    ///     "test.txt".to_string(),
+    ///     "world",
+    ///     textum::BoundaryMode::Include,
+    ///     "rust",
+    /// );
     ///
     /// patch.apply(&mut rope).unwrap();
     /// assert_eq!(rope.to_string(), "hello rust");
     /// ```
     pub fn apply(&self, rope: &mut Rope) -> Result<(), PatchError> {
-        let (start, end) = self.range;
+        let resolution = self.snippet.resolve(rope)?;
 
-        if end > rope.len_chars() {
+        if resolution.end > rope.len_chars() {
             return Err(PatchError::RangeOutOfBounds);
         }
 
         // Remove the range
-        if start < end {
-            rope.remove(start..end);
+        if resolution.start < resolution.end {
+            rope.remove(resolution.start..resolution.end);
         }
 
-        // Insert replacement if provided
-        if let Some(ref text) = self.replacement {
-            rope.insert(start, text.as_str());
-        }
+        // Insert replacement
+        rope.insert(resolution.start, &self.replacement);
 
         Ok(())
+    }
+
+    /// Create a patch from a literal string target.
+    ///
+    /// Constructs a patch that matches the first occurrence of `needle` in the file
+    /// and applies the boundary mode to determine inclusion/exclusion.
+    ///
+    /// # Arguments
+    ///
+    /// * `file` - Path to the file this patch targets
+    /// * `needle` - Exact string to match
+    /// * `mode` - Whether to include, exclude, or extend the boundary
+    /// * `replacement` - Text to insert (empty string for deletion)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textum::{Patch, BoundaryMode};
+    ///
+    /// let patch = Patch::from_literal_target(
+    ///     "src/main.rs".to_string(),
+    ///     "old_name",
+    ///     BoundaryMode::Include,
+    ///     "new_name",
+    /// );
+    /// ```
+    #[must_use]
+    pub fn from_literal_target(
+        file: String,
+        needle: &str,
+        mode: BoundaryMode,
+        replacement: impl Into<String>,
+    ) -> Self {
+        let target = Target::Literal(needle.to_string());
+        let boundary = Boundary::new(target, mode);
+        let snippet = Snippet::At(boundary);
+        Self {
+            file,
+            snippet,
+            replacement: replacement.into(),
+            #[cfg(feature = "symbol_path")]
+            symbol_path: None,
+        }
+    }
+
+    /// Create a patch from a line range.
+    ///
+    /// Constructs a patch that targets a range of lines, with the start line included
+    /// and the end line excluded (half-open range semantics).
+    ///
+    /// # Arguments
+    ///
+    /// * `file` - Path to the file this patch targets
+    /// * `start_line` - Starting line number (0-indexed, inclusive)
+    /// * `end_line` - Ending line number (0-indexed, exclusive)
+    /// * `replacement` - Text to insert (empty string for deletion)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textum::Patch;
+    ///
+    /// // Delete lines 5-10
+    /// let patch = Patch::from_line_range(
+    ///     "src/main.rs".to_string(),
+    ///     5,
+    ///     10,
+    ///     "",
+    /// );
+    /// ```
+    #[must_use]
+    pub fn from_line_range(
+        file: String,
+        start_line: usize,
+        end_line: usize,
+        replacement: impl Into<String>,
+    ) -> Self {
+        let start = Boundary::new(Target::Line(start_line), BoundaryMode::Include);
+        let end = Boundary::new(Target::Line(end_line), BoundaryMode::Exclude);
+        let snippet = Snippet::Between { start, end };
+        Self {
+            file,
+            snippet,
+            replacement: replacement.into(),
+            #[cfg(feature = "symbol_path")]
+            symbol_path: None,
+        }
     }
 
     /// Create a patch from line-based positions.
@@ -208,8 +214,8 @@ impl Patch {
     /// * `col_start` - Starting column within the line (0-indexed)
     /// * `line_end` - Ending line number (0-indexed)
     /// * `col_end` - Ending column within the line (0-indexed)
-    /// * `rope` - A rope containing the file content, used to convert line positions to char indices
-    /// * `replacement` - Optional replacement text
+    /// * `rope` - A rope containing the file content, used to validate positions
+    /// * `replacement` - Replacement text
     ///
     /// # Examples
     ///
@@ -220,15 +226,13 @@ impl Patch {
     /// let rope = Rope::from_str("line 1\nline 2\nline 3");
     /// let patch = Patch::from_line_positions(
     ///     "test.txt".to_string(),
-    ///     1,  // line_start
-    ///     0,  // col_start
-    ///     1,  // line_end
-    ///     6,  // col_end
+    ///     1,
+    ///     0,
+    ///     1,
+    ///     6,
     ///     &rope,
-    ///     Some("EDITED".into()),
+    ///     "EDITED",
     /// );
-    ///
-    /// assert_eq!(patch.range, (7, 13));
     /// ```
     #[must_use]
     pub fn from_line_positions(
@@ -237,21 +241,29 @@ impl Patch {
         col_start: usize,
         line_end: usize,
         col_end: usize,
-        rope: &Rope,
-        replacement: Option<String>,
-        // replacement: Option<Text>,
+        _rope: &Rope,
+        replacement: impl Into<String>,
     ) -> Self {
-        let start_char = rope.line_to_char(line_start) + col_start;
-        let end_char = rope.line_to_char(line_end) + col_end;
+        // For a range spanning multiple positions, use Between with two Position targets
+        let start_target = Target::Position {
+            line: line_start + 1, // Convert to 1-indexed
+            col: col_start + 1,
+        };
+        let end_target = Target::Position {
+            line: line_end + 1,
+            col: col_end + 1,
+        };
+
+        let start = Boundary::new(start_target, BoundaryMode::Include);
+        let end = Boundary::new(end_target, BoundaryMode::Exclude);
+        let snippet = Snippet::Between { start, end };
 
         Self {
             file,
-            range: (start_char, end_char),
-            replacement,
+            snippet,
+            replacement: replacement.into(),
             #[cfg(feature = "symbol_path")]
             symbol_path: None,
-            #[cfg(feature = "line_tol")]
-            max_line_drift: None,
         }
     }
 }

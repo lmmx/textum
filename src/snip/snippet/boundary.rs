@@ -1,5 +1,8 @@
 use std::hash::Hash;
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 use crate::snip::Target;
 
 /// `BoundaryError` enum type raised by boundary resolution.
@@ -17,6 +20,7 @@ pub use mode::*;
 pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "facet", derive(Facet))]
 /// Pairs a target with the mode of inclusion/exclusion/extension of its boundaries.
 pub struct Boundary {
     /// The pattern or position defining this boundary.

@@ -1,6 +1,9 @@
 //! Snippet-based text selection and boundary specification.
 use std::hash::Hash;
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 /// Boundary specification and treatment modes.
 pub mod boundary;
 /// Error types for snippet operations.
@@ -15,6 +18,8 @@ pub use error::*;
 pub use resolution::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Specifies a text range through boundary markers or positions.
 ///
 /// The exceptions are the `Between` variant (which takes two `Boundary` arguments for the start and

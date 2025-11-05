@@ -43,7 +43,7 @@ impl Target {
         match self {
             Target::Literal(s) => resolve_literal(rope, s),
             #[cfg(feature = "regex")]
-            Target::Pattern { regex, .. } => resolve_pattern(rope, regex),
+            Target::Pattern(pattern) => resolve_pattern(rope, pattern),
             Target::Line(n) => resolve_line(rope, *n),
             Target::Char(n) => resolve_char(rope, *n),
             Target::Position { line, col } => resolve_position(rope, *line, *col),
@@ -119,10 +119,15 @@ impl Target {
             }
 
             #[cfg(feature = "regex")]
-            Target::Pattern { regex, .. } => {
+            Target::Pattern(pattern) => {
                 use regex_cursor::{Input as RegexInput, RopeyCursor};
+
+                let regex = regex_cursor::engines::meta::Regex::new(pattern)
+                    .map_err(|e| TargetError::InvalidPattern(e.to_string()))?;
+
                 let cursor = RopeyCursor::new(rope.slice(..));
                 let input = RegexInput::new(cursor);
+
                 if let Some(m) = regex.find(input) {
                     Ok((m.start(), m.end()))
                 } else {
@@ -171,11 +176,11 @@ fn resolve_literal(rope: &Rope, needle: &str) -> Result<usize, TargetError> {
 
 /// Resolves a regex pattern target to its first match in the rope.
 #[cfg(feature = "regex")]
-fn resolve_pattern(
-    rope: &Rope,
-    regex: &regex_cursor::engines::meta::Regex,
-) -> Result<usize, TargetError> {
+fn resolve_pattern(rope: &Rope, pattern: &str) -> Result<usize, TargetError> {
     use regex_cursor::{Input as RegexInput, RopeyCursor};
+
+    let regex = regex_cursor::engines::meta::Regex::new(pattern)
+        .map_err(|e| TargetError::InvalidPattern(e.to_string()))?;
 
     let cursor = RopeyCursor::new(rope.slice(..));
     let input = RegexInput::new(cursor);

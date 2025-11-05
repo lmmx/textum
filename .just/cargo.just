@@ -16,9 +16,9 @@ doctest *args:
     cargo test --doc {{args}} --all-features
 
 test *args:
-    # cargo nextest run {{args}} --all-targets --all-features
-    # cargo hack nextest run --workspace --all-targets --each-feature
-    cargo hack nextest run --workspace --all-targets --feature-powerset
+    # cargo nextest run {{args}} --all-targets --all-features --no-fail-fast
+    # cargo hack nextest run --workspace --all-targets --each-feature --no-fail-fast
+    cargo hack nextest run --workspace --all-targets --feature-powerset --no-fail-fast
 
 test-ci *args:
     #!/usr/bin/env -S echo-comment --color bright-green

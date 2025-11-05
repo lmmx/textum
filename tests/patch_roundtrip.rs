@@ -2,7 +2,7 @@
 use predicates::prelude::*;
 use std::fs;
 use tempfile::NamedTempFile;
-use textum::{Patch, PatchSet};
+use textum::{BoundaryMode, Patch, PatchSet};
 
 #[test]
 fn patch_replaces_text_in_tempfile() {
@@ -11,15 +11,12 @@ fn patch_replaces_text_in_tempfile() {
     fs::write(temp.path(), "Hello Louis!").unwrap();
 
     // Define a patch that replaces "Louis" with "World"
-    let patch = Patch {
-        file: temp.path().to_string_lossy().into(),
-        range: (6, 11), // "Louis"
-        replacement: Some("World".into()),
-        #[cfg(feature = "symbol_path")]
-        symbol_path: None,
-        #[cfg(feature = "line_tol")]
-        max_line_drift: None,
-    };
+    let patch = Patch::from_literal_target(
+        temp.path().to_string_lossy().into(),
+        "Louis",
+        BoundaryMode::Include,
+        "World",
+    );
 
     let mut set = PatchSet::new();
     set.add(patch);

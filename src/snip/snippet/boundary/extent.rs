@@ -2,13 +2,16 @@ use std::hash::Hash;
 
 use ropey::Rope;
 
+#[cfg(feature = "facet")]
+use facet::Facet;
+
 use super::BoundaryError;
 use crate::snip::Target;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "facet", derive(Facet))]
+#[repr(u8)]
 /// Measures distance for boundary extension.
-///
-/// May be given in absolute terms or subject to some target(s).
 pub enum Extent {
     /// Extends by a line count.
     Lines(usize),
@@ -247,7 +250,7 @@ pub fn calculate_matching_extent(
         }
         Target::Literal(_) => {} // Valid case: Literal with content
         #[cfg(feature = "regex")]
-        Target::Pattern { .. } => {} // Valid case: Pattern
+        Target::Pattern(_) => {} // Valid case: Pattern
     }
 
     if from >= rope.len_chars() {
@@ -320,14 +323,16 @@ pub fn calculate_matching_extent(
             }
 
             #[cfg(feature = "regex")]
-            Target::Pattern { regex, .. } => {
+            Target::Pattern(pattern) => {
                 use regex_cursor::{Input as RegexInput, RopeyCursor};
-                // Create a RopeSlice from cursor to the end (zero-copy)
+
+                let regex = regex_cursor::engines::meta::Regex::new(pattern)
+                    .map_err(|_| BoundaryError::InvalidExtent)?;
+
                 let slice = rope.slice(cursor..);
                 let cursor_struct = RopeyCursor::new(slice);
                 let input = RegexInput::new(cursor_struct);
                 if let Some(m) = regex.find(input) {
-                    // m.end() is a char index relative to the slice; add cursor to get global
                     cursor = cursor.saturating_add(m.end());
                     remaining = remaining.saturating_sub(1);
                 } else {
