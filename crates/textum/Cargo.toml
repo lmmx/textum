@@ -1,6 +1,7 @@
 [[bin]]
 name = "textum"
 path = "src/cli.rs"
+required-features = ["cli"]
 
 [dependencies]
 ropey.workspace = true
