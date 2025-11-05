@@ -4,18 +4,18 @@ use crate::snip::target::error::TargetError;
 /// Errors that can occur while resolving snippet boundaries.
 ///
 /// These represent failures when converting a logical boundary definition into concrete character
-/// indices within a [`Rope`].
+/// indices within a [`ropey::Rope`].
 pub enum BoundaryError {
-    /// An error occurred in the underlying [`Target`] resolution logic.
+    /// An error occurred in the underlying [`crate::Target`] resolution logic.
     TargetError(TargetError),
-    /// The extent moved beyond the bounds of the [`Rope`].
+    /// The extent moved beyond the bounds of the [`ropey::Rope`].
     ///
     /// Returned when attempting to extend past the end of the buffer.
     ExtentOutOfBounds,
     /// The extent definition was invalid or not applicable.
     ///
     /// Returned when a boundary’s extent type cannot be resolved in the given context, such as
-    /// attempting to use a non-pattern [`Target`] for a matching-based extent.
+    /// attempting to use a non-pattern [`crate::Target`] for a matching-based extent.
     InvalidExtent,
 }
 
