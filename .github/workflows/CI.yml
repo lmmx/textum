@@ -25,20 +25,6 @@ permissions:
 jobs:
   check-commit:
     runs-on: ubuntu-latest
-    # This job only runs if the commit message meets the condition
-    # if: >
-    #   (
-    #     (
-    #       (github.event_name == 'push')
-    #       || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'lmmx')
-    #     )
-    #     &&
-    #     (
-    #       startsWith(github.event.head_commit.message, 'chore(release)') ||
-    #       contains(github.event.head_commit.message, 'cibuildwheel')
-    #     )
-    #   )
-    #   || (github.event_name == 'workflow_dispatch')
     steps:
       - name: Confirm commit message matched
         run: echo "Commit message matched the condition."
@@ -68,6 +54,7 @@ jobs:
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
         with:
           key: ${{ runner.os }}-${{ matrix.platform.target }}-manylinux
+          workspaces: "crates/textum-py"
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -78,11 +65,12 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
+          working-directory: crates/textum-py
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.platform.target }}
-          path: dist
+          path: crates/textum-py/dist
 
   musllinux:
     needs: [check-commit]
@@ -105,6 +93,7 @@ jobs:
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
         with:
           key: ${{ runner.os }}-${{ matrix.platform.target }}-musllinux
+          workspaces: "crates/textum-py"
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -115,11 +104,12 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
+          working-directory: crates/textum-py
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
-          path: dist
+          path: crates/textum-py/dist
 
   windows:
     needs: [check-commit]
@@ -138,6 +128,7 @@ jobs:
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
         with:
           key: ${{ runner.os }}-${{ matrix.platform.target }}
+          workspaces: "crates/textum-py"
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -148,11 +139,12 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          working-directory: crates/textum-py
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-${{ matrix.platform.target }}
-          path: dist
+          path: crates/textum-py/dist
 
   macos:
     needs: [check-commit]
@@ -171,6 +163,7 @@ jobs:
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
         with:
           key: ${{ runner.os }}-${{ matrix.platform.target }}
+          workspaces: "crates/textum-py"
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -180,11 +173,12 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          working-directory: crates/textum-py
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.platform.target }}
-          path: dist
+          path: crates/textum-py/dist
 
   sdist:
     needs: [check-commit]
@@ -195,16 +189,18 @@ jobs:
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
         with:
           key: ${{ runner.os }}-sdist
+          workspaces: "crates/textum-py"
       - name: Build sdist
         uses: PyO3/maturin-action@86b9d133d34bc1b40018696f782949dac11bd380 # v1.49.4
         with:
           command: sdist
           args: --out dist
+          working-directory: crates/textum-py
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
           name: wheels-sdist
-          path: dist
+          path: crates/textum-py/dist
 
   release:
     name: Release
