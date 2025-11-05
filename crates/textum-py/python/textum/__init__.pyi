@@ -1,0 +1,66 @@
+"""Type stubs for textum."""
+
+from typing import Optional
+
+class Patch:
+    """A single atomic patch operation on a file."""
+
+    def __init__(
+        self,
+        file: str,
+        snippet: Snippet,
+        replacement: str,
+        symbol_path: Optional[list[str]] = None,
+    ) -> None: ...
+    @staticmethod
+    def from_literal_target(
+        file: str, needle: str, mode: str, replacement: str
+    ) -> Patch: ...
+    @staticmethod
+    def from_line_range(
+        file: str, start_line: int, end_line: int, replacement: str
+    ) -> Patch: ...
+    def apply_to_string(self, content: str) -> str: ...
+
+class PatchSet:
+    """A collection of patches that can be applied together."""
+
+    def __init__(self) -> None: ...
+    def add(self, patch: Patch) -> None: ...
+    def apply_to_files(self) -> dict[str, str]: ...
+
+class Snippet:
+    """Specifies a text range through boundary markers or positions."""
+
+    @staticmethod
+    def at(boundary: Boundary) -> Snippet: ...
+    @staticmethod
+    def from_boundary(boundary: Boundary) -> Snippet: ...
+    @staticmethod
+    def to(boundary: Boundary) -> Snippet: ...
+    @staticmethod
+    def between(start: Boundary, end: Boundary) -> Snippet: ...
+    @staticmethod
+    def all() -> Snippet: ...
+
+class Boundary:
+    """Pairs a target with the mode of inclusion/exclusion."""
+
+    def __init__(self, target: Target, mode: str) -> None: ...
+
+class Target:
+    """Defines what text position or pattern a boundary matches."""
+
+    @staticmethod
+    def literal(needle: str) -> Target: ...
+    @staticmethod
+    def line(line_number: int) -> Target: ...
+    @staticmethod
+    def char(char_index: int) -> Target: ...
+    @staticmethod
+    def position(line: int, col: int) -> Target: ...
+    @staticmethod
+    def pattern(pattern: str) -> Target: ...
+
+def load_patches_from_json(json_str: str) -> list[Patch]: ...
+def save_patches_to_json(patches: list[Patch]) -> str: ...

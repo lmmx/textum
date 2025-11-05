@@ -1,0 +1,81 @@
+[[bin]]
+name = "textum"
+path = "src/cli.rs"
+
+[dependencies]
+ropey.workspace = true
+
+# Optional dependencies
+# -- Regex
+regex-cursor = { optional = true, version = "0.1" }
+
+# -- Facet
+facet = { optional = true, version = "0.30.0" }
+facet-args = { optional = true, version = "0.30.0" }
+facet-json = { optional = true, workspace = true }
+
+# -- Symbols
+tree-sitter = { optional = true, version = "0.24.0" }
+tree-sitter-rust = { optional = true, version = "0.24.0" }
+
+[package]
+authors.workspace = true
+categories = ["command-line-utilities", "development-tools"]
+description.workspace = true
+documentation = "https://docs.rs/textum/"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "textum"
+readme.workspace = true
+repository.workspace = true
+rust-version = "1.90"
+version = "0.1.1"
+
+[package.metadata.binstall]
+pkg-fmt = "tgz"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-{ target }-v{ version }.tar.gz"
+
+[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]
+pkg-fmt = "zip"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-aarch64-pc-windows-msvc-v{ version }.zip"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+pkg-url = "https://github.com/lmmx/textum/releases/download/textum-v{ version }/textum-x86_64-pc-windows-msvc-v{ version }.zip"
+
+[lints.clippy]
+all = "deny"
+cargo = "deny"
+pedantic = "deny"
+
+[lints.rust]
+missing_docs = "deny"
+unsafe_code = "forbid"
+
+[features]
+# --- Patch field gating features
+regex = ["dep:regex-cursor"]
+symbol_path = []             # symbol_path field
+
+all-patch-fields = ["symbol_path"]
+
+# --- Dependency features
+cli = ["all-patch-fields", "dep:facet-args", "json", "regex"]
+facet = ["dep:facet"]
+json = ["dep:facet-json", "facet"]
+
+# --- Symbol paths
+ts-base = ["dep:tree-sitter"]
+ts-full = ["ts-rust"]
+# --- Symbol paths -- tree-sitter languages
+ts-rust = ["dep:tree-sitter-rust", "ts-base"] # TODO: tss-rust
+
+[dev-dependencies]
+assert_cmd = "2.1.1"
+predicates = "3.1.3"
+tempfile = "3.23.0"
+
+[package.metadata.cargo-machete]
+ignored = ["tree-sitter", "tree-sitter-rust"]

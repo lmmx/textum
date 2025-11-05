@@ -1,0 +1,21 @@
+[package]
+authors = ["Louis Maddox <louismmx@gmail.com>"]
+description = "Python bindings for textum - syntactic patching with char-level granularity"
+edition = "2021"
+license = "MIT"
+name = "textum-py"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"]
+name = "_textum"
+
+[dependencies]
+textum = { features = ["json", "regex"], workspace = true }
+
+facet-json.workspace = true
+pyo3.workspace = true
+ropey.workspace = true
+
+[build-dependencies]
+pyo3-build-config = "0.22"

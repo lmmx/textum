@@ -1,0 +1,30 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1.0,<2.0"]
+
+[project]
+authors = [{ email = "louismmx@gmail.com", name = "Louis Maddox" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Rust",
+]
+description = "A syntactic patching library with char-level granularity"
+license = { text = "MIT" }
+name = "textum"
+readme = "README.md"
+requires-python = ">=3.8"
+version = "0.1.0"
+
+[project.urls]
+Homepage = "https://github.com/lmmx/textum"
+Repository = "https://github.com/lmmx/textum"
+
+[tool.maturin]
+module-name = "textum._textum"
+python-source = "python"
