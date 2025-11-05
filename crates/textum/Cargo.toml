@@ -80,3 +80,7 @@ tempfile = "3.23.0"
 
 [package.metadata.cargo-machete]
 ignored = ["tree-sitter", "tree-sitter-rust"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

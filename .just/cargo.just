@@ -12,6 +12,13 @@ clippy:
 clippy-fix:
     cargo clippy --fix --workspace --all-targets --all-features --target-dir target/clippy-all-features -- -D warnings
 
+docs:
+    cargo doc --all-features --no-deps --document-private-items --keep-going
+
+ndocs:
+    RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --no-deps --all-features --open
+    rustup toolchain uninstall nightly
+
 doctest *args:
     cargo test --doc {{args}} --all-features
 

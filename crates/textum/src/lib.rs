@@ -156,6 +156,7 @@
 //!     Ok(())
 //! }
 //! ```
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(clippy::multiple_crate_versions)]
 
 pub mod composer;

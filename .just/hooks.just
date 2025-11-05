@@ -59,8 +59,3 @@ code-quality-fix:
     just fix-eof-ws
     cargo machete
     cargo fmt --all
-
-# -------------------------------------
-
-docs:
-    cargo doc --all-features --no-deps --document-private-items --keep-going
