@@ -47,5 +47,5 @@ ship-wheels *dl_args:
   gh run download -p wheel* {{dl_args}}
   mv wheel*/* dist/
   rm -rf wheel*
-  just publish --no-build
+  just py-publish --no-build
   rm -rf dist/*
