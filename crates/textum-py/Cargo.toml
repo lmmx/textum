@@ -1,9 +1,14 @@
 [package]
 authors = ["Louis Maddox <louismmx@gmail.com>"]
+categories = ["command-line-utilities", "development-tools"]
 description = "Python bindings for textum - syntactic patching with char-level granularity"
 edition = "2021"
+homepage = "https://github.com/lmmx/textum"
+keywords = ["diff", "patch", "syntax", "tree-sitter"]
 license = "MIT"
 name = "textum-py"
+publish = false
+repository = "https://github.com/lmmx/textum"
 version = "0.1.0"
 
 [lib]

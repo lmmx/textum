@@ -1,10 +1,10 @@
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
 use std::collections::HashMap;
 use textum::{Boundary, BoundaryMode, Patch, PatchSet, Snippet, Target};
 
 /// A Python wrapper for the Patch struct
 #[pyclass]
+#[derive(Clone)]
 struct PyPatch {
     inner: Patch,
 }
@@ -91,7 +91,7 @@ impl PyPatchSet {
     }
 
     /// Add a patch to this set
-    fn add(&mut self, patch: PyPatch) {
+    fn add(&mut self, patch: &PyPatch) {
         self.inner.add(patch.inner.clone());
     }
 
@@ -232,17 +232,20 @@ impl PyTarget {
 #[pyfunction]
 fn load_patches_from_json(json_str: String) -> PyResult<Vec<PyPatch>> {
     let patches: Vec<Patch> = facet_json::from_str(&json_str)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))?;
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{:?}", e)))?;
 
     Ok(patches.into_iter().map(|inner| PyPatch { inner }).collect())
 }
 
 /// Save patches to JSON
 #[pyfunction]
-fn save_patches_to_json(patches: Vec<PyPatch>) -> PyResult<String> {
-    let inner_patches: Vec<Patch> = patches.into_iter().map(|p| p.inner).collect();
-    facet_json::to_string(&inner_patches)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
+fn save_patches_to_json(patches: Vec<Bound<'_, PyPatch>>) -> PyResult<String> {
+    let inner_patches: Vec<Patch> = patches
+        .into_iter()
+        .map(|p| p.borrow().inner.clone())
+        .collect();
+
+    Ok(facet_json::to_string(&inner_patches))
 }
 
 // Helper function to parse boundary mode strings
