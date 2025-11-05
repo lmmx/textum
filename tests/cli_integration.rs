@@ -124,11 +124,7 @@ mod cli_integration {
                 "file": "{}",
                 "snippet": {{
                     "At": {{
-                        "target": {{
-                            "Pattern": {{
-                                "pattern": "\\d+\\.\\d+\\.\\d+"
-                            }}
-                        }},
+                        "target": {{"Pattern": "\\d+\\.\\d+\\.\\d+"}},
                         "mode": "Include"
                     }}
                 }},
