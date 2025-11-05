@@ -10,6 +10,9 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 name = "_textum"
 
+[features]
+symbol_path = ["textum/symbol_path"]
+
 [dependencies]
 textum = { features = ["json", "regex"], workspace = true }
 

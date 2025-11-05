@@ -17,7 +17,7 @@ impl PyPatch {
         file: String,
         snippet: PySnippet,
         replacement: String,
-        symbol_path: Option<Vec<String>>,
+        #[allow(unused_variables)] symbol_path: Option<Vec<String>>,
     ) -> Self {
         PyPatch {
             inner: Patch {
@@ -219,7 +219,6 @@ impl PyTarget {
         }
     }
 
-    #[cfg(feature = "regex")]
     /// Create a Pattern (regex) target
     #[staticmethod]
     fn pattern(pattern: String) -> PyResult<Self> {
