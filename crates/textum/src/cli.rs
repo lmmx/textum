@@ -85,8 +85,14 @@ pub mod inner {
         };
 
         // Parse patches from JSON using facet
-        let patches: Vec<Patch> = facet_json::from_str(&input)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("{e:?}")))?;
+        // Parse patches from JSON using facet
+        let patches: Vec<Patch> = match facet_json::from_str(&input) {
+            Ok(patches) => patches,
+            Err(e) => {
+                eprintln!("{e}");
+                std::process::exit(1);
+            }
+        };
 
         if args.verbose {
             eprintln!("Loaded {} patch(es)", patches.len());
