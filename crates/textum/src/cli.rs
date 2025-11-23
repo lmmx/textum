@@ -22,3 +22,7 @@ pub mod inner;
 pub mod inner;
 
 pub use inner::main;
+
+// Re-export the real inner modules to crate-level for convenience behind feature gate
+#[cfg(feature = "cli")]
+pub use inner::{args, diff, handlers, utils};
