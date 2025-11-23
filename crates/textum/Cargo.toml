@@ -32,7 +32,7 @@ name = "textum"
 readme.workspace = true
 repository.workspace = true
 rust-version = "1.88"
-version = "0.2.0"
+version = "0.3.0"
 
 [package.metadata.binstall]
 pkg-fmt = "tgz"
