@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import textum
 
 
@@ -39,3 +42,70 @@ def test_line_range():
 
     result = patch.apply_to_string(content)
     assert result == "line1\nreplaced\nline4\n"
+
+
+def test_apply_to_file():
+    """Test applying a patch to a file from disk."""
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
+        f.write("hello world\n")
+        temp_path = f.name
+
+    try:
+        # Create patch
+        patch = textum.Patch.from_literal_target(
+            file=temp_path,
+            needle="world",
+            mode="include",
+            replacement="rust",
+        )
+
+        # Apply and get result without writing
+        result = patch.apply_to_file()
+        assert result == "hello rust\n"
+
+        # Verify file wasn't modified yet
+        with open(temp_path, "r") as f:
+            content = f.read()
+        assert content == "hello world\n"
+
+        # Now write to file
+        patch.write_to_file()
+
+        # Verify the file was modified
+        with open(temp_path, "r") as f:
+            content = f.read()
+        assert content == "hello rust\n"
+    finally:
+        # Clean up
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+
+
+def test_write_to_file():
+    """Test writing a patch directly to a file."""
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
+        f.write("hello world\n")
+        temp_path = f.name
+
+    try:
+        # Create and apply patch
+        patch = textum.Patch.from_literal_target(
+            file=temp_path,
+            needle="world",
+            mode="include",
+            replacement="rust",
+        )
+
+        patch.write_to_file()  # ← Changed from apply_to_file()
+
+        # Verify the file was modified
+        with open(temp_path, "r") as f:
+            content = f.read()
+
+        assert content == "hello rust\n"
+    finally:
+        # Clean up
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
