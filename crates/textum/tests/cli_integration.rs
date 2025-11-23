@@ -7,7 +7,7 @@ mod cli_integration {
     use tempfile::TempDir;
 
     #[test]
-    fn cli_applies_literal_target_patch() {
+    fn cli_applies_literal_target_patch_quiet() {
         let temp = TempDir::new().unwrap();
 
         let source_file = temp.path().join("hello.txt");
@@ -29,11 +29,53 @@ mod cli_integration {
         );
         fs::write(&patch_file, patch_json).unwrap();
 
-        cargo_bin_cmd!("textum")
+        let cmd = cargo_bin_cmd!("textum")
             .arg(patch_file.to_str().unwrap())
             .assert()
-            .success()
-            .stderr(predicate::str::contains("Patched:"));
+            .success();
+
+        let output = cmd.get_output();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        insta::assert_snapshot!(stderr, @"");
+
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "Hello World!");
+    }
+
+    #[test]
+    fn cli_applies_literal_target_patch_verbose() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("hello.txt");
+        fs::write(&source_file, "Hello Louis!").unwrap();
+
+        let patch_file = temp.path().join("patches.json");
+        let patch_json = format!(
+            r#"[{{
+                "file": "{}",
+                "snippet": {{
+                    "At": {{
+                        "target": {{"Literal": "Louis"}},
+                        "mode": "Include"
+                    }}
+                }},
+                "replacement": "World"
+            }}]"#,
+            source_file.display()
+        );
+        fs::write(&patch_file, patch_json).unwrap();
+
+        let cmd = cargo_bin_cmd!("textum")
+            .arg(patch_file.to_str().unwrap())
+            .arg("--verbose")
+            .assert()
+            .success();
+
+        let output = cmd.get_output();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        insta::assert_snapshot!(stderr, @"Loaded 1 patch(es)\nSuccessfully patched 1 file(s)");
 
         let result = fs::read_to_string(&source_file).unwrap();
         assert_eq!(result, "Hello World!");
