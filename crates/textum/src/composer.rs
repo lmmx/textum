@@ -178,6 +178,50 @@ impl PatchSet {
 
         Ok(results)
     }
+
+    /// Apply all patches and write results to disk.
+    ///
+    /// This is a convenience method that applies all patches using `apply_to_files()`
+    /// and then writes each modified file back to disk.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - any file cannot be read,
+    /// - any snippet cannot be resolved,
+    /// - resolved ranges overlap with non-empty replacements,
+    /// - any patch has an invalid range,
+    /// - or any file cannot be written.
+    ///
+    /// If an error occurs during writing, some files may have been written while
+    /// others have not.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use textum::{Patch, PatchSet, BoundaryMode};
+    ///
+    /// let mut set = PatchSet::new();
+    /// set.add(Patch::from_literal_target(
+    ///     "src/main.rs".to_string(),
+    ///     "old",
+    ///     BoundaryMode::Include,
+    ///     "new",
+    /// ));
+    ///
+    /// // Apply patches and write to disk
+    /// set.write_to_files()?;
+    /// # Ok::<(), textum::PatchError>(())
+    /// ```
+    pub fn write_to_files(&self) -> Result<(), PatchError> {
+        let results = self.apply_to_files()?;
+
+        for (file, content) in results {
+            std::fs::write(&file, content).map_err(PatchError::IoError)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl Default for PatchSet {

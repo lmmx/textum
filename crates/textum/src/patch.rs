@@ -116,7 +116,48 @@ impl Patch {
         Ok(())
     }
 
-    /// Apply this patch to a file, reading from and writing to disk.
+    /// Apply this patch to a file, returning the modified content.
+    ///
+    /// This reads a file from disk, applies the patch, and returns the result
+    /// without writing back to disk. Use `write_to_file()` to write the result
+    /// back to disk.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PatchError` if:
+    /// - the file path is not set (`file` is `None`)
+    /// - the file cannot be read
+    /// - the snippet cannot be resolved
+    /// - the resolved range is invalid
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use textum::{Patch, BoundaryMode};
+    ///
+    /// let patch = Patch::from_literal_target(
+    ///     "tests/fixtures/sample.txt".to_string(),
+    ///     "world",
+    ///     BoundaryMode::Include,
+    ///     "rust",
+    /// );
+    ///
+    /// let result = patch.apply_to_file()?;
+    /// println!("Modified content: {}", result);
+    /// # Ok::<(), textum::PatchError>(())
+    /// ```
+    pub fn apply_to_file(&self) -> Result<String, PatchError> {
+        let file_path = self.file.as_ref().ok_or(PatchError::MissingFilePath)?;
+
+        let content = std::fs::read_to_string(file_path).map_err(PatchError::IoError)?;
+        let mut rope = Rope::from_str(&content);
+
+        self.apply(&mut rope)?;
+
+        Ok(rope.to_string())
+    }
+
+    /// Apply this patch to a file and write the result back to disk.
     ///
     /// This is a convenience method that reads a file from disk, applies the patch,
     /// and writes the result back to the same file. The file path must be set in the
@@ -143,19 +184,13 @@ impl Patch {
     ///     "rust",
     /// );
     ///
-    /// patch.apply_to_file()?;
+    /// patch.write_to_file()?;
     /// # Ok::<(), textum::PatchError>(())
     /// ```
-    pub fn apply_to_file(&self) -> Result<(), PatchError> {
+    pub fn write_to_file(&self) -> Result<(), PatchError> {
         let file_path = self.file.as_ref().ok_or(PatchError::MissingFilePath)?;
-
-        let content = std::fs::read_to_string(file_path).map_err(PatchError::IoError)?;
-        let mut rope = Rope::from_str(&content);
-
-        self.apply(&mut rope)?;
-
-        std::fs::write(file_path, rope.to_string()).map_err(PatchError::IoError)?;
-
+        let content = self.apply_to_file()?;
+        std::fs::write(file_path, content).map_err(PatchError::IoError)?;
         Ok(())
     }
 

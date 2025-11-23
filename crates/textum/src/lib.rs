@@ -114,7 +114,7 @@
 //!
 //! ## Apply Single Patch to File
 //!
-//! Apply a patch directly to a file on disk, reading and writing in one operation:
+//! Apply a patch to a file from disk, with options to inspect or write results:
 //!
 //! ```no_run
 //! use textum::{Patch, BoundaryMode};
@@ -126,13 +126,19 @@
 //!     "rust",
 //! );
 //!
-//! // Reads tests/fixtures/sample.txt, applies the patch, and writes back
-//! patch.apply_to_file().unwrap();
+//! // Get the result without writing
+//! let result = patch.apply_to_file().unwrap();
+//! println!("Would change to: {}", result);
+//!
+//! // Or write directly to disk
+//! patch.write_to_file().unwrap();
 //! ```
 //!
 //! ## Composing Multiple Patches
 //!
-//! For applying multiple patches to one or more files, use `PatchSet`:
+//! For applying multiple patches to one or more files, use `PatchSet`.
+//! Use `apply_to_files()` to get results in memory for inspection, or
+//! `write_to_files()` to apply and write directly to disk:
 //!
 //! ```
 //! use textum::{Patch, PatchSet, BoundaryMode};
@@ -153,8 +159,12 @@
 //!     "rust",
 //! ));
 //!
+//! // Get results in memory for inspection
 //! let results = set.apply_to_files().unwrap();
 //! assert_eq!(results.get("tests/fixtures/sample.txt").unwrap(), "goodbye rust\n");
+//!
+//! // Or write directly to disk
+//! // set.write_to_files().unwrap();
 //! ```
 //!
 //! ## JSON API with Facet
@@ -211,5 +221,6 @@ pub use snip::target::Target;
 ///
 /// Users who need fine-grained control over rope operations can use this type directly.
 /// For simpler use cases, consider using `Patch::apply_to_string()` which works with
-/// `&str` and `String` directly, or `Patch::apply_to_file()` for direct file operations.
+/// `&str` and `String` directly, or `Patch::apply_to_file()` / `Patch::write_to_file()`
+/// for file operations.
 pub use ropey::Rope;

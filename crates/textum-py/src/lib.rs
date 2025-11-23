@@ -67,10 +67,17 @@ impl PyPatch {
         Ok(rope.to_string())
     }
 
-    /// Apply this patch directly to a file on disk
-    fn apply_to_file(&self) -> PyResult<()> {
+    /// Apply this patch to a file from disk, returning the modified content
+    fn apply_to_file(&self) -> PyResult<String> {
         self.inner
             .apply_to_file()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))
+    }
+
+    /// Apply this patch to a file and write the result back to disk
+    fn write_to_file(&self) -> PyResult<()> {
+        self.inner
+            .write_to_file()
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))
     }
 
@@ -107,6 +114,13 @@ impl PyPatchSet {
     fn apply_to_files(&self) -> PyResult<HashMap<String, String>> {
         self.inner
             .apply_to_files()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))
+    }
+
+    /// Apply all patches and write results to disk
+    fn write_to_files(&self) -> PyResult<()> {
+        self.inner
+            .write_to_files()
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))
     }
 
