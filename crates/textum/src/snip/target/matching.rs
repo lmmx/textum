@@ -2,7 +2,7 @@
 
 use super::error::TargetError;
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 impl Target {
     /// Resolves this target to a character index in the given rope.
@@ -22,8 +22,7 @@ impl Target {
     /// # Examples
     ///
     /// ```
-    /// use textum::Target;
-    /// use ropey::Rope;
+    /// use textum::{Rope, Target};
     ///
     /// let rope = Rope::from_str("hello\nworld\n");
     ///

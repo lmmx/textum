@@ -3,7 +3,7 @@ use crate::snip::snippet::boundary::{
     calculate_matching_extent, BoundaryError,
 };
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 #[test]
 fn test_calculate_lines_extent_success() {

@@ -1,6 +1,6 @@
 use crate::snip::snippet::{Boundary, BoundaryMode, Extent, Snippet};
 use crate::snip::Target;
-use ropey::Rope;
+use textum::Rope;
 
 #[test]
 fn test_workflow_comment_block_replacement() {

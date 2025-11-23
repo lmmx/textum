@@ -13,6 +13,9 @@ pub enum PatchError {
     /// The target file could not be found or read.
     FileNotFound,
 
+    /// Patch is missing a file path (required for `apply_to_files`).
+    MissingFilePath,
+
     /// An I/O error occurred while reading or writing files.
     IoError(std::io::Error),
 
@@ -39,6 +42,10 @@ impl fmt::Display for PatchError {
         match self {
             Self::RangeOutOfBounds => write!(f, "Patch range exceeds file bounds"),
             Self::FileNotFound => write!(f, "Target file not found"),
+            Self::MissingFilePath => write!(
+                f,
+                "Patch is missing a file path (required for file operations)"
+            ),
             Self::IoError(e) => write!(f, "I/O error: {e}"),
             Self::SnippetError(e) => write!(f, "Snippet error: {e:?}"),
             Self::BoundaryError(e) => write!(f, "Boundary error: {e:?}"),

@@ -1,5 +1,5 @@
 use super::{Extent, Snippet, SnippetError};
-use ropey::Rope;
+use crate::Rope;
 
 use super::boundary::{
     calculate_bytes_extent, calculate_chars_extent, calculate_lines_extent,

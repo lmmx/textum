@@ -1,6 +1,6 @@
 use crate::snip::snippet::boundary::{Boundary, BoundaryMode, Extent};
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 #[test]
 fn test_resolve_exclude_mode() {

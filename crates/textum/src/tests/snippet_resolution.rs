@@ -1,6 +1,6 @@
 use crate::snip::snippet::{Boundary, BoundaryMode, Extent, Snippet, SnippetError};
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 #[test]
 fn test_resolve_at_single_line() {

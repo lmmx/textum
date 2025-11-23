@@ -21,7 +21,7 @@ impl PyPatch {
     ) -> Self {
         PyPatch {
             inner: Patch {
-                file,
+                file: Some(file),
                 snippet: snippet.inner,
                 replacement,
                 #[cfg(feature = "symbol_path")]
@@ -60,7 +60,7 @@ impl PyPatch {
 
     /// Apply this patch to a file's content (as string)
     fn apply_to_string(&self, content: String) -> PyResult<String> {
-        let mut rope = ropey::Rope::from_str(&content);
+        let mut rope = textum::Rope::from_str(&content);
         self.inner
             .apply(&mut rope)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))?;
@@ -70,7 +70,8 @@ impl PyPatch {
     fn __repr__(&self) -> String {
         format!(
             "Patch(file='{}', replacement='{}')",
-            self.inner.file, self.inner.replacement
+            self.inner.file.as_deref().unwrap_or("<none>"),
+            self.inner.replacement
         )
     }
 }

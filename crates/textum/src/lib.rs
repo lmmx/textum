@@ -31,8 +31,7 @@
 //! ## Simple Literal Replacement
 //!
 //! ```
-//! use textum::Patch;
-//! use ropey::Rope;
+//! use textum::{Patch, Rope};
 //!
 //! let mut rope = Rope::from_str("hello world");
 //! let patch = Patch::from_literal_target(
@@ -49,8 +48,7 @@
 //! ## Line Range Deletion
 //!
 //! ```
-//! use textum::Patch;
-//! use ropey::Rope;
+//! use textum::{Patch, Rope};
 //!
 //! let mut rope = Rope::from_str("line1\nline2\nline3\nline4\n");
 //! let patch = Patch::from_line_range(
@@ -67,8 +65,7 @@
 //! ## Between Markers
 //!
 //! ```
-//! use textum::{Patch, Boundary, BoundaryMode, Snippet, Target};
-//! use ropey::Rope;
+//! use textum::{Boundary, BoundaryMode, Patch, Rope, Snippet, Target};
 //!
 //! let mut rope = Rope::from_str("<!-- start -->old<!-- end -->");
 //!
@@ -83,7 +80,7 @@
 //! let snippet = Snippet::Between { start, end };
 //!
 //! let patch = Patch {
-//!     file: "test.txt".to_string(),
+//!     file: Some("test.txt".to_string()),
 //!     snippet,
 //!     replacement: "new".to_string(),
 //!     #[cfg(feature = "symbol_path")]
@@ -92,6 +89,27 @@
 //!
 //! patch.apply(&mut rope).unwrap();
 //! assert_eq!(rope.to_string(), "<!-- start -->new<!-- end -->");
+//! ```
+//!
+//! ## String-Based API (No Rope Required)
+//!
+//! For convenience, patches can be applied directly to strings without needing to
+//! import or work with `Rope` types. Use `Patch::in_memory()` for patches that
+//! don't need a file path:
+//!
+//! ```
+//! use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
+//!
+//! let content = "hello world";
+//!
+//! let snippet = Snippet::At(Boundary::new(
+//!     Target::Literal("world".to_string()),
+//!     BoundaryMode::Include,
+//! ));
+//!
+//! let patch = Patch::in_memory(snippet, "rust");
+//! let result = patch.apply_to_string(content).unwrap();
+//! assert_eq!(result, "hello rust");
 //! ```
 //!
 //! ## Composing Multiple Patches
@@ -168,3 +186,10 @@ pub use patch::{Patch, PatchError};
 pub use snip::snippet::boundary::{Boundary, BoundaryMode};
 pub use snip::snippet::{Snippet, SnippetError, SnippetResolution};
 pub use snip::target::Target;
+
+/// Re-export of ropey's Rope for convenience.
+///
+/// Users who need fine-grained control over rope operations can use this type directly.
+/// For simpler use cases, consider using `Patch::apply_to_string()` which works with
+/// `&str` and `String` directly.
+pub use ropey::Rope;

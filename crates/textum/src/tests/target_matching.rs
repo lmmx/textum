@@ -1,6 +1,6 @@
 use crate::snip::target::error::TargetError;
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 #[test]
 fn test_resolve_char_valid() {

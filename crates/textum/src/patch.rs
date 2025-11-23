@@ -4,9 +4,9 @@
 //! and optional replacement text. Patches can be created from line-based positions (for
 //! compatibility with tools like cargo diagnostics) or directly from character indices.
 
+use crate::Rope;
 #[cfg(feature = "facet")]
 use facet::Facet;
-use ropey::Rope;
 
 pub mod error;
 pub use error::PatchError;
@@ -23,8 +23,7 @@ use crate::snip::target::Target;
 /// # Examples
 ///
 /// ```
-/// use textum::{Patch, Target, Boundary, BoundaryMode, Snippet};
-/// use ropey::Rope;
+/// use textum::{Patch, Target, Boundary, BoundaryMode, Rope, Snippet};
 ///
 /// // Replace using literal target
 /// let mut rope = Rope::from_str("hello world");
@@ -52,7 +51,10 @@ use crate::snip::target::Target;
 #[cfg_attr(feature = "facet", derive(Facet))]
 pub struct Patch {
     /// File path this patch applies to.
-    pub file: String,
+    ///
+    /// Required when using `PatchSet::apply_to_files()`. Can be `None` for
+    /// in-memory operations using `apply()` or `apply_to_string()`.
+    pub file: Option<String>,
 
     /// Snippet defining the target range for this patch.
     pub snippet: Snippet,
@@ -83,8 +85,7 @@ impl Patch {
     /// # Examples
     ///
     /// ```
-    /// use ropey::Rope;
-    /// use textum::Patch;
+    /// use textum::{Patch, Rope};
     ///
     /// let mut rope = Rope::from_str("hello world");
     /// let patch = Patch::from_literal_target(
@@ -113,6 +114,77 @@ impl Patch {
         rope.insert(resolution.start, &self.replacement);
 
         Ok(())
+    }
+
+    /// Create a patch for in-memory string operations without a file path.
+    ///
+    /// Use this constructor when you plan to apply patches via `apply()` or
+    /// `apply_to_string()` on in-memory content. For file-based operations,
+    /// use constructors like `from_literal_target()` which require a file path.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
+    ///
+    /// let snippet = Snippet::At(Boundary::new(
+    ///     Target::Literal("world".to_string()),
+    ///     BoundaryMode::Include,
+    /// ));
+    ///
+    /// let patch = Patch::in_memory(snippet, "rust");
+    /// let result = patch.apply_to_string("hello world").unwrap();
+    /// assert_eq!(result, "hello rust");
+    /// ```
+    #[must_use]
+    pub fn in_memory(snippet: Snippet, replacement: impl Into<String>) -> Self {
+        Self {
+            file: None,
+            snippet,
+            replacement: replacement.into(),
+            #[cfg(feature = "symbol_path")]
+            symbol_path: None,
+        }
+    }
+
+    /// Apply this patch to a string, returning the modified string.
+    ///
+    /// This is a convenience method for working with strings directly without needing
+    /// to construct a `Rope`. The string is converted to a rope internally, the patch
+    /// is applied, and the result is converted back to a string.
+    ///
+    /// # Arguments
+    ///
+    /// * `content` - The string content to apply the patch to
+    ///
+    /// # Returns
+    ///
+    /// Returns the modified string with the patch applied.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PatchError` if the snippet cannot be resolved or if the resolved
+    /// range extends beyond the content's character count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
+    ///
+    /// let snippet = Snippet::At(Boundary::new(
+    ///     Target::Literal("world".to_string()),
+    ///     BoundaryMode::Include,
+    ///     "rust",
+    /// ));
+    ///
+    /// let patch = Patch::in_memory(snippet, "rust");
+    /// let result = patch.apply_to_string(content).unwrap();
+    /// assert_eq!(result, "hello rust");
+    /// ```
+    pub fn apply_to_string(&self, content: &str) -> Result<String, PatchError> {
+        let mut rope = Rope::from_str(content);
+        self.apply(&mut rope)?;
+        Ok(rope.to_string())
     }
 
     /// Create a patch from a literal string target.
@@ -150,7 +222,7 @@ impl Patch {
         let boundary = Boundary::new(target, mode);
         let snippet = Snippet::At(boundary);
         Self {
-            file,
+            file: Some(file),
             snippet,
             replacement: replacement.into(),
             #[cfg(feature = "symbol_path")]
@@ -194,7 +266,7 @@ impl Patch {
         let end = Boundary::new(Target::Line(end_line), BoundaryMode::Exclude);
         let snippet = Snippet::Between { start, end };
         Self {
-            file,
+            file: Some(file),
             snippet,
             replacement: replacement.into(),
             #[cfg(feature = "symbol_path")]
@@ -220,8 +292,7 @@ impl Patch {
     /// # Examples
     ///
     /// ```
-    /// use ropey::Rope;
-    /// use textum::Patch;
+    /// use textum::{Patch, Rope};
     ///
     /// let rope = Rope::from_str("line 1\nline 2\nline 3");
     /// let patch = Patch::from_line_positions(
@@ -259,7 +330,7 @@ impl Patch {
         let snippet = Snippet::Between { start, end };
 
         Self {
-            file,
+            file: Some(file),
             snippet,
             replacement: replacement.into(),
             #[cfg(feature = "symbol_path")]

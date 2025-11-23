@@ -1,8 +1,6 @@
 //! Snippet replacement operations on rope structures.
 
-use crate::Snippet;
-use crate::SnippetError;
-use ropey::Rope;
+use crate::{Rope, Snippet, SnippetError};
 
 impl Snippet {
     /// Replaces the text selected by this snippet with the given replacement string.
@@ -37,8 +35,7 @@ impl Snippet {
     /// Insert text at a position:
     ///
     /// ```rust
-    /// use textum::{Snippet, Target, Boundary, BoundaryMode};
-    /// use ropey::Rope;
+    /// use textum::{Rope, Snippet, Target, Boundary, BoundaryMode};
     ///
     /// let rope = Rope::from_str("hello world");
     /// let target = Target::Char(4); // The o in "hello"
@@ -52,8 +49,7 @@ impl Snippet {
     /// Delete a line:
     ///
     /// ```rust
-    /// use textum::{Snippet, Target, Boundary, BoundaryMode};
-    /// use ropey::Rope;
+    /// use textum::{Rope, Snippet, Target, Boundary, BoundaryMode};
     ///
     /// let rope = Rope::from_str("line1\nline2\nline3\n");
     /// let target = Target::Line(1); // Second line
@@ -67,8 +63,7 @@ impl Snippet {
     /// Replace text between boundaries:
     ///
     /// ```rust
-    /// use textum::{Snippet, Target, Boundary, BoundaryMode};
-    /// use ropey::Rope;
+    /// use textum::{Rope, Snippet, Target, Boundary, BoundaryMode};
     ///
     /// let rope = Rope::from_str("<!-- comment -->text<!-- /comment -->");
     /// let start_target = Target::Literal("<!-- comment -->".to_string());
@@ -152,7 +147,7 @@ pub fn validate_replacement_utf8(s: &str) -> Result<(), SnippetError> {
 ///
 /// ```rust
 /// # use textum::snip::snippet::replacement::apply_replacement;
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// let rope = Rope::from_str("hello world");
 ///
 /// // Replace "world" with "rust"

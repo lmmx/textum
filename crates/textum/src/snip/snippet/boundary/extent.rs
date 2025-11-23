@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use ropey::Rope;
+use crate::Rope;
 
 #[cfg(feature = "facet")]
 use facet::Facet;
@@ -47,7 +47,7 @@ pub enum Extent {
 /// Extend 2 lines forward from the start of line 2:
 ///
 /// ```rust
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// # use textum::snip::snippet::boundary::calculate_lines_extent;
 /// let rope = Rope::from("1\n2\n3\n4\n5");
 /// let from_char = rope.line_to_char(2);  // Start of line 2 (char 4)
@@ -95,7 +95,7 @@ pub fn calculate_lines_extent(
 /// Here we extend 4 characters from `from = 3` and also show a case where extending past the rope length fails.
 ///
 /// ```rust
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// # use textum::snip::snippet::boundary::calculate_chars_extent;
 /// let rope = Rope::from("Hello, world");
 /// assert_eq!(calculate_chars_extent(&rope, 3, 4).unwrap(), 7);
@@ -138,7 +138,7 @@ pub fn calculate_chars_extent(
 /// Extend 2 bytes from within "hello", landing cleanly on the space:
 ///
 /// ```rust
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// # use textum::snip::snippet::boundary::calculate_bytes_extent;
 /// let rope = Rope::from("hello 🎉");
 /// // From char 3 ('l'), extend 2 bytes to land on char 5 (space)
@@ -148,7 +148,7 @@ pub fn calculate_chars_extent(
 /// Extend from the emoji through to EOF:
 ///
 /// ```rust
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// # use textum::snip::snippet::boundary::calculate_bytes_extent;
 /// let rope = Rope::from("hello 🎉");
 /// // Char 6 is the emoji (4 bytes: bytes 6-9)
@@ -214,7 +214,7 @@ pub fn calculate_bytes_extent(
 /// Find newlines from different starting positions:
 ///
 /// ```rust
-/// # use ropey::Rope;
+/// # use textum::Rope;
 /// # use textum::snip::snippet::boundary::calculate_matching_extent;
 /// # use textum::snip::Target;
 ///

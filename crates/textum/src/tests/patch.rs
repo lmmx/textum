@@ -1,7 +1,7 @@
 use super::*;
 use crate::snip::snippet::{Boundary, BoundaryMode};
 use crate::snip::Target;
-use ropey::Rope;
+use textum::Rope;
 
 #[test]
 fn test_apply_replace() {
@@ -24,7 +24,7 @@ fn test_apply_insert() {
     let boundary = Boundary::new(target, BoundaryMode::Exclude);
     let snippet = Snippet::At(boundary);
     let patch = Patch {
-        file: "test.txt".to_string(),
+        file: Some("test.txt".to_string()),
         snippet,
         replacement: " ".to_string(),
         #[cfg(feature = "symbol_path")]
@@ -56,7 +56,7 @@ fn test_bounds_check() {
     let boundary = Boundary::new(target, BoundaryMode::Include);
     let snippet = Snippet::At(boundary);
     let patch = Patch {
-        file: "test.txt".to_string(),
+        file: Some("test.txt".to_string()),
         snippet,
         replacement: "".to_string(),
         #[cfg(feature = "symbol_path")]
