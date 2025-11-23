@@ -128,7 +128,12 @@ impl PatchSet {
         // Group patches by file
         let mut by_file: HashMap<String, Vec<&Patch>> = HashMap::new();
         for patch in &self.patches {
-            by_file.entry(patch.file.clone()).or_default().push(patch);
+            let file = patch
+                .file
+                .as_ref()
+                .ok_or(PatchError::MissingFilePath)?
+                .clone();
+            by_file.entry(file).or_default().push(patch);
         }
 
         for (file, patches) in by_file {

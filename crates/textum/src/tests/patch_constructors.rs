@@ -120,7 +120,7 @@ fn test_pattern_based_patch() {
     let snippet = Snippet::At(boundary);
 
     let patch = Patch {
-        file: "test.txt".to_string(),
+        file: Some("test.txt".to_string()),
         snippet,
         replacement: "2.0.0".to_string(),
         #[cfg(feature = "symbol_path")]

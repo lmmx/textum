@@ -80,7 +80,7 @@
 //! let snippet = Snippet::Between { start, end };
 //!
 //! let patch = Patch {
-//!     file: "test.txt".to_string(),
+//!     file: Some("test.txt".to_string()),
 //!     snippet,
 //!     replacement: "new".to_string(),
 //!     #[cfg(feature = "symbol_path")]
@@ -94,18 +94,20 @@
 //! ## String-Based API (No Rope Required)
 //!
 //! For convenience, patches can be applied directly to strings without needing to
-//! import or work with `Rope` types:
+//! import or work with `Rope` types. Use `Patch::in_memory()` for patches that
+//! don't need a file path:
 //!
 //! ```
-//! use textum::{Patch, BoundaryMode};
+//! use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
 //!
-//! let patch = Patch::from_literal_target(
-//!     "tests/fixtures/sample.txt".to_string(),
-//!     "world",
+//! let content = "hello world";
+//!
+//! let snippet = Snippet::At(Boundary::new(
+//!     Target::Literal("world".to_string()),
 //!     BoundaryMode::Include,
-//!     "rust",
-//! );
+//! ));
 //!
+//! let patch = Patch::in_memory(snippet, "rust");
 //! let result = patch.apply_to_string(content).unwrap();
 //! assert_eq!(result, "hello rust");
 //! ```

@@ -21,7 +21,7 @@ impl PyPatch {
     ) -> Self {
         PyPatch {
             inner: Patch {
-                file,
+                file: Some(file),
                 snippet: snippet.inner,
                 replacement,
                 #[cfg(feature = "symbol_path")]
@@ -70,7 +70,8 @@ impl PyPatch {
     fn __repr__(&self) -> String {
         format!(
             "Patch(file='{}', replacement='{}')",
-            self.inner.file, self.inner.replacement
+            self.inner.file.as_deref().unwrap_or("<none>"),
+            self.inner.replacement
         )
     }
 }
