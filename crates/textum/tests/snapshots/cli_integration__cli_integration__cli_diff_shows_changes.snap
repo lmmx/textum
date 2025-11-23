@@ -1,0 +1,9 @@
+---
+source: crates/textum/tests/cli_integration.rs
+expression: normalized
+---
+[36m--- tmp/XXXX/hello.txt[0m
+[36m+++ tmp/XXXX/hello.txt[0m
+[36m@@ -1,1 +1,1 @@[0m
+[31m-Hello Louis![0m
+[32m+Hello World![0m

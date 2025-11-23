@@ -339,4 +339,46 @@ mod cli_integration {
             .failure()
             .stderr(predicate::str::contains("Error:"));
     }
+
+    #[test]
+    fn cli_diff_shows_changes() {
+        let temp = TempDir::new().unwrap();
+
+        let source_file = temp.path().join("hello.txt");
+        fs::write(&source_file, "Hello Louis!").unwrap();
+
+        let patch_file = temp.path().join("patches.json");
+        let patch_json = format!(
+            r#"[{{
+                "file": "{}",
+                "snippet": {{
+                    "At": {{
+                        "target": {{"Literal": "Louis"}},
+                        "mode": "Include"
+                    }}
+                }},
+                "replacement": "World"
+            }}]"#,
+            source_file.display()
+        );
+        fs::write(&patch_file, patch_json).unwrap();
+
+        let cmd = cargo_bin_cmd!("textum")
+            .arg(patch_file.to_str().unwrap())
+            .arg("--diff")
+            .assert()
+            .success();
+
+        let output = cmd.get_output();
+        let stdout = String::from_utf8_lossy(&output.stdout);
+
+        // Normalize temp path for snapshot stability
+        let normalized = stdout.replace(temp.path().to_str().unwrap(), "tmp/XXXX");
+
+        insta::assert_snapshot!(normalized);
+
+        // Verify file was NOT modified (--diff implies --dry-run)
+        let result = fs::read_to_string(&source_file).unwrap();
+        assert_eq!(result, "Hello Louis!");
+    }
 }
