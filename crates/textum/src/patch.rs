@@ -132,7 +132,7 @@ impl Patch {
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```
     /// use textum::{Patch, BoundaryMode};
     ///
     /// let patch = Patch::from_literal_target(
@@ -205,10 +205,12 @@ impl Patch {
     /// ```
     /// use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
     ///
-    /// let snippet = Snippet::At(Boundary::new(
-    ///     Target::Literal("world".to_string()),
-    ///     BoundaryMode::Include,
-    /// ));
+    /// let snippet = Snippet::At(
+    ///     Boundary::new(
+    ///         Target::Literal("world".to_string()),
+    ///         BoundaryMode::Include,
+    ///     )
+    /// );
     ///
     /// let patch = Patch::in_memory(snippet, "rust");
     /// let result = patch.apply_to_string("hello world").unwrap();
@@ -249,11 +251,13 @@ impl Patch {
     /// ```
     /// use textum::{Patch, Snippet, Boundary, BoundaryMode, Target};
     ///
-    /// let snippet = Snippet::At(Boundary::new(
-    ///     Target::Literal("world".to_string()),
-    ///     BoundaryMode::Include,
-    ///     "rust",
-    /// ));
+    /// let content = "hello world";
+    /// let snippet = Snippet::At(
+    ///     Boundary::new(
+    ///         Target::Literal("world".to_string()),
+    ///         BoundaryMode::Include,
+    ///     )
+    /// );
     ///
     /// let patch = Patch::in_memory(snippet, "rust");
     /// let result = patch.apply_to_string(content).unwrap();
