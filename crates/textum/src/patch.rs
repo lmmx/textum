@@ -4,9 +4,9 @@
 //! and optional replacement text. Patches can be created from line-based positions (for
 //! compatibility with tools like cargo diagnostics) or directly from character indices.
 
+use crate::Rope;
 #[cfg(feature = "facet")]
 use facet::Facet;
-use ropey::Rope;
 
 pub mod error;
 pub use error::PatchError;
@@ -23,8 +23,7 @@ use crate::snip::target::Target;
 /// # Examples
 ///
 /// ```
-/// use textum::{Patch, Target, Boundary, BoundaryMode, Snippet};
-/// use ropey::Rope;
+/// use textum::{Patch, Target, Boundary, BoundaryMode, Rope, Snippet};
 ///
 /// // Replace using literal target
 /// let mut rope = Rope::from_str("hello world");
@@ -83,8 +82,7 @@ impl Patch {
     /// # Examples
     ///
     /// ```
-    /// use ropey::Rope;
-    /// use textum::Patch;
+    /// use textum::{Patch, Rope};
     ///
     /// let mut rope = Rope::from_str("hello world");
     /// let patch = Patch::from_literal_target(
@@ -113,6 +111,46 @@ impl Patch {
         rope.insert(resolution.start, &self.replacement);
 
         Ok(())
+    }
+
+    /// Apply this patch to a string, returning the modified string.
+    ///
+    /// This is a convenience method for working with strings directly without needing
+    /// to construct a `Rope`. The string is converted to a rope internally, the patch
+    /// is applied, and the result is converted back to a string.
+    ///
+    /// # Arguments
+    ///
+    /// * `content` - The string content to apply the patch to
+    ///
+    /// # Returns
+    ///
+    /// Returns the modified string with the patch applied.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PatchError` if the snippet cannot be resolved or if the resolved
+    /// range extends beyond the content's character count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use textum::{Patch, BoundaryMode};
+    ///
+    /// let patch = Patch::from_literal_target(
+    ///     "tests/fixtures/sample.txt".to_string(),
+    ///     "world",
+    ///     BoundaryMode::Include,
+    ///     "rust",
+    /// );
+    ///
+    /// let result = patch.apply_to_string(content).unwrap();
+    /// assert_eq!(result, "hello rust");
+    /// ```
+    pub fn apply_to_string(&self, content: &str) -> Result<String, PatchError> {
+        let mut rope = Rope::from_str(content);
+        self.apply(&mut rope)?;
+        Ok(rope.to_string())
     }
 
     /// Create a patch from a literal string target.
@@ -220,8 +258,7 @@ impl Patch {
     /// # Examples
     ///
     /// ```
-    /// use ropey::Rope;
-    /// use textum::Patch;
+    /// use textum::{Patch, Rope};
     ///
     /// let rope = Rope::from_str("line 1\nline 2\nline 3");
     /// let patch = Patch::from_line_positions(

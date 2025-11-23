@@ -1,7 +1,7 @@
 use super::*;
 use crate::snip::snippet::{Boundary, BoundaryMode};
 use crate::snip::Target;
-use ropey::Rope;
+use textum::Rope;
 
 #[test]
 fn test_apply_replace() {

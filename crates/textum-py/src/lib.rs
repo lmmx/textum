@@ -60,7 +60,7 @@ impl PyPatch {
 
     /// Apply this patch to a file's content (as string)
     fn apply_to_string(&self, content: String) -> PyResult<String> {
-        let mut rope = ropey::Rope::from_str(&content);
+        let mut rope = textum::Rope::from_str(&content);
         self.inner
             .apply(&mut rope)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))?;

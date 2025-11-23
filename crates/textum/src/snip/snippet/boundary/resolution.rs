@@ -2,7 +2,7 @@ use super::{
     calculate_bytes_extent, calculate_chars_extent, calculate_lines_extent,
     calculate_matching_extent, Boundary, BoundaryError, BoundaryMode, Extent,
 };
-use ropey::Rope;
+use crate::Rope;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// The concrete start and end indices of a resolved boundary within a [`Rope`].
@@ -33,9 +33,8 @@ impl Boundary {
     /// # Examples
     ///
     /// ```
-    /// use ropey::Rope;
     /// use textum::snip::snippet::boundary::BoundaryResolution;
-    /// use textum::Target;
+    /// use textum::{Rope, Target};
     ///
     /// let rope = Rope::from_str("alpha\nbeta\ngamma\n");
     /// let target = Target::Line(1);

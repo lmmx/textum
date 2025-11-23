@@ -23,7 +23,6 @@ textum = { features = ["json", "regex"], workspace = true }
 
 facet-json.workspace = true
 pyo3.workspace = true
-ropey.workspace = true
 
 [build-dependencies]
 pyo3-build-config = "0.22"

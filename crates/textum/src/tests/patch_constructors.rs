@@ -2,7 +2,7 @@
 
 use crate::patch::Patch;
 use crate::snip::snippet::BoundaryMode;
-use ropey::Rope;
+use textum::Rope;
 
 #[test]
 fn test_from_literal_target_basic() {

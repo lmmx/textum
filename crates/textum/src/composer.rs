@@ -5,7 +5,7 @@
 //! applied in reverse order to maintain stable positions.
 
 use crate::patch::{Patch, PatchError};
-use ropey::Rope;
+use crate::Rope;
 use std::collections::HashMap;
 
 /// A collection of patches that can be applied together.

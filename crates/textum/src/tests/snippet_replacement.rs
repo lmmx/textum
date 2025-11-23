@@ -1,6 +1,6 @@
 use crate::snip::snippet::{Boundary, BoundaryMode, Snippet, SnippetError};
 use crate::snip::Target;
-use ropey::Rope;
+use crate::Rope;
 
 #[test]
 fn test_replace_insert_at_position_exclude() {
