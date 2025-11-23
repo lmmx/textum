@@ -9,7 +9,7 @@ license = "MIT"
 name = "textum-py"
 publish = false
 repository = "https://github.com/lmmx/textum"
-version = "0.1.2"
+version = "0.2.0"
 
 [lib]
 crate-type = ["cdylib"]
