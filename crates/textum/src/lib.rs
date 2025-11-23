@@ -112,7 +112,27 @@
 //! assert_eq!(result, "hello rust");
 //! ```
 //!
+//! ## Apply Single Patch to File
+//!
+//! Apply a patch directly to a file on disk, reading and writing in one operation:
+//!
+//! ```no_run
+//! use textum::{Patch, BoundaryMode};
+//!
+//! let patch = Patch::from_literal_target(
+//!     "tests/fixtures/sample.txt".to_string(),
+//!     "world",
+//!     BoundaryMode::Include,
+//!     "rust",
+//! );
+//!
+//! // Reads tests/fixtures/sample.txt, applies the patch, and writes back
+//! patch.apply_to_file().unwrap();
+//! ```
+//!
 //! ## Composing Multiple Patches
+//!
+//! For applying multiple patches to one or more files, use `PatchSet`:
 //!
 //! ```
 //! use textum::{Patch, PatchSet, BoundaryMode};
@@ -191,5 +211,5 @@ pub use snip::target::Target;
 ///
 /// Users who need fine-grained control over rope operations can use this type directly.
 /// For simpler use cases, consider using `Patch::apply_to_string()` which works with
-/// `&str` and `String` directly.
+/// `&str` and `String` directly, or `Patch::apply_to_file()` for direct file operations.
 pub use ropey::Rope;

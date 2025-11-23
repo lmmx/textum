@@ -67,6 +67,13 @@ impl PyPatch {
         Ok(rope.to_string())
     }
 
+    /// Apply this patch directly to a file on disk
+    fn apply_to_file(&self) -> PyResult<()> {
+        self.inner
+            .apply_to_file()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("{}", e)))
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Patch(file='{}', replacement='{}')",
