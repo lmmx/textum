@@ -13,12 +13,19 @@
 
 /// Command-line interface for applying patches from JSON.
 #[cfg(feature = "cli")]
-#[path = "cli/core.rs"]
+#[path = "../cli/core.rs"]
 pub mod inner;
 
 /// Hint replacement CLI for when the cli module is used without building the cli feature.
 #[cfg(not(feature = "cli"))]
-#[path = "cli/stub.rs"]
-pub mod inner;
+#[path = "../cli/stub.rs"]
+pub mod inner {
+    /// Provide a hint to the user that they did not build this crate with the cli feature.
+    #[cfg(not(feature = "cli"))]
+    pub fn main() {
+        eprintln!("Please build with the cli feature to run the CLI");
+        std::process::exit(1);
+    }
+}
 
 pub use inner::main;
