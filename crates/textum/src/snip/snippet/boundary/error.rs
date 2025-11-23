@@ -4,11 +4,11 @@ use crate::snip::target::error::TargetError;
 /// Errors that can occur while resolving snippet boundaries.
 ///
 /// These represent failures when converting a logical boundary definition into concrete character
-/// indices within a [`textum::Rope`].
+/// indices within a [`Rope`].
 pub enum BoundaryError {
     /// An error occurred in the underlying [`crate::Target`] resolution logic.
     TargetError(TargetError),
-    /// The extent moved beyond the bounds of the [`textum::Rope`].
+    /// The extent moved beyond the bounds of the [`Rope`].
     ///
     /// Returned when attempting to extend past the end of the buffer.
     ExtentOutOfBounds,
