@@ -22,6 +22,10 @@ ndocs:
 doctest *args:
     cargo test --doc {{args}} --all-features
 
+# Reinstall the CLI from the textum crate
+reinstall:
+    cargo install --path crates/textum -F cli
+
 test *args:
     # cargo nextest run {{args}} --all-targets --all-features --no-fail-fast --exclude textum-py
     # cargo hack nextest run --workspace --all-targets --each-feature --no-fail-fast --exclude textum-py
