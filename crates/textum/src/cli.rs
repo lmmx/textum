@@ -20,14 +20,13 @@ pub mod inner {
     use textum::{Patch, PatchSet};
 
     mod diff {
-        use super::PatchSet;
         use std::io::{self, Write};
 
         /// Print a diff-style view of changes for a single file.
         ///
         /// Uses ANSI color codes to highlight additions (green) and deletions (red).
-        /// Shows context lines around each change for readability.
-        pub fn print_diff(file: &str, original: &str, patch_set: &PatchSet) {
+        /// Shows ctx lines around each change for readability.
+        pub fn print_diff(file: &str, original: &str, modified: &str) {
             const CONTEXT_LINES: usize = 3;
             const COLOR_RED: &str = "\x1b[31m";
             const COLOR_GREEN: &str = "\x1b[32m";
@@ -41,15 +40,23 @@ pub mod inner {
             writeln!(handle, "{COLOR_CYAN}--- {file}{COLOR_RESET}").ok();
             writeln!(handle, "{COLOR_CYAN}+++ {file}{COLOR_RESET}").ok();
 
-            let original_rope = textum::Rope::from_str(original);
+            let orig_lines: Vec<&str> = original.lines().collect();
+            let mod_lines: Vec<&str> = modified.lines().collect();
 
-            // Collect patches for this file and resolve their ranges
-            let mut changes: Vec<(usize, usize, String)> = Vec::new();
-            for patch in &patch_set.patches {
-                if patch.file.as_deref() == Some(file) {
-                    if let Ok(resolution) = patch.snippet.resolve(&original_rope) {
-                        changes.push((resolution.start, resolution.end, patch.replacement.clone()));
-                    }
+            // Find changed lines
+            let mut changes = Vec::new();
+            for (i, (orig, modi)) in orig_lines.iter().zip(mod_lines.iter()).enumerate() {
+                if orig != modi {
+                    changes.push(i);
+                }
+            }
+
+            // Handle length differences
+            if orig_lines.len() != mod_lines.len() {
+                for i in
+                    orig_lines.len().min(mod_lines.len())..orig_lines.len().max(mod_lines.len())
+                {
+                    changes.push(i);
                 }
             }
 
@@ -57,80 +64,59 @@ pub mod inner {
                 return;
             }
 
-            changes.sort_by_key(|(start, _, _)| *start);
+            // Group consecutive changes into hunks
+            let mut hunks = Vec::new();
+            let mut current_hunk_start = changes[0];
+            let mut current_hunk_end = changes[0];
 
-            // For each change, show context around it
-            for (start_char, end_char, replacement) in changes {
-                // Convert char positions to line numbers for context display
-                let start_line = original_rope.char_to_line(start_char);
-                let end_line = if end_char > 0 && end_char <= original_rope.len_chars() {
-                    original_rope.char_to_line(end_char.saturating_sub(1))
+            for &line_idx in &changes[1..] {
+                if line_idx <= current_hunk_end + CONTEXT_LINES * 2 {
+                    current_hunk_end = line_idx;
                 } else {
-                    start_line
-                };
+                    hunks.push((current_hunk_start, current_hunk_end));
+                    current_hunk_start = line_idx;
+                    current_hunk_end = line_idx;
+                }
+            }
+            hunks.push((current_hunk_start, current_hunk_end));
 
-                // Calculate context window
-                let context_start_line = start_line.saturating_sub(CONTEXT_LINES);
-                let context_end_line =
-                    (end_line + CONTEXT_LINES + 1).min(original_rope.len_lines());
+            // Print each hunk
+            for (hunk_start, hunk_end) in hunks {
+                let ctx_start = hunk_start.saturating_sub(CONTEXT_LINES);
+                let ctx_end =
+                    (hunk_end + CONTEXT_LINES + 1).min(orig_lines.len().max(mod_lines.len()));
 
-                // Print hunk header
-                let orig_line_count = end_line.saturating_sub(start_line) + 1;
-                let replacement_line_count = if replacement.is_empty() {
-                    0
-                } else {
-                    replacement.lines().count().max(1)
-                };
+                let orig_count = ctx_end
+                    .saturating_sub(ctx_start)
+                    .min(orig_lines.len().saturating_sub(ctx_start));
+                let mod_count = ctx_end
+                    .saturating_sub(ctx_start)
+                    .min(mod_lines.len().saturating_sub(ctx_start));
 
                 writeln!(
                     handle,
                     "{COLOR_CYAN}@@ -{},{} +{},{} @@{COLOR_RESET}",
-                    start_line + 1,
-                    orig_line_count,
-                    start_line + 1,
-                    replacement_line_count
+                    ctx_start + 1,
+                    orig_count,
+                    ctx_start + 1,
+                    mod_count
                 )
                 .ok();
 
-                // Print context before change
-                for line_idx in context_start_line..start_line {
-                    let line = original_rope.line(line_idx);
-                    write!(handle, " {line}").ok();
-                    if !line.to_string().ends_with('\n') {
-                        writeln!(handle).ok();
-                    }
-                }
-
-                // Print removed lines (red)
-                for line_idx in start_line..=end_line {
-                    if line_idx < original_rope.len_lines() {
-                        let line = original_rope.line(line_idx);
-                        write!(handle, "{COLOR_RED}-{line}{COLOR_RESET}").ok();
-                        if !line.to_string().ends_with('\n') {
-                            writeln!(handle).ok();
+                // Print ctx and changes
+                for i in ctx_start..ctx_end {
+                    if i < hunk_start || i > hunk_end {
+                        // Context line
+                        if i < orig_lines.len() {
+                            writeln!(handle, " {}", orig_lines[i]).ok();
                         }
-                    }
-                }
-
-                // Print added lines (green)
-                if !replacement.is_empty() {
-                    for line in replacement.lines() {
-                        writeln!(handle, "{COLOR_GREEN}+{line}{COLOR_RESET}").ok();
-                    }
-                    // Handle trailing content without newline
-                    if !replacement.ends_with('\n') && replacement.lines().last().is_none() {
-                        writeln!(handle).ok();
-                    }
-                }
-
-                // Print context after change
-                let context_after_start = end_line + 1;
-                for line_idx in context_after_start..context_end_line {
-                    if line_idx < original_rope.len_lines() {
-                        let line = original_rope.line(line_idx);
-                        write!(handle, " {line}").ok();
-                        if !line.to_string().ends_with('\n') {
-                            writeln!(handle).ok();
+                    } else {
+                        // Changed line
+                        if i < orig_lines.len() {
+                            writeln!(handle, "{COLOR_RED}-{}{COLOR_RESET}", orig_lines[i]).ok();
+                        }
+                        if i < mod_lines.len() {
+                            writeln!(handle, "{COLOR_GREEN}+{}{COLOR_RESET}", mod_lines[i]).ok();
                         }
                     }
                 }
@@ -244,7 +230,7 @@ pub mod inner {
                         if args.diff {
                             // Read original content
                             let original = fs::read_to_string(file)?;
-                            print_diff(file, &original, &set);
+                            print_diff(file, &original, content);
                         } else if args.verbose {
                             println!("=== {file} ===\n{content}");
                         }
