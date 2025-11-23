@@ -1,3 +1,9 @@
+//! Command-line argument definitions and help text.
+//!
+//! This module defines the argument structure for all textum commands,
+//! including replace, delete, and apply operations. Each command has its
+//! own argument type with appropriate flags and options.
+
 use facet::Facet;
 
 pub mod apply;
@@ -8,6 +14,12 @@ pub use apply::ApplyArgs;
 pub use delete::DeleteArgs;
 pub use replace::ReplaceArgs;
 
+/// Top-level command enumeration for the textum CLI.
+///
+/// Each variant corresponds to a major operation mode:
+/// - [`Replace`](Command::Replace): Find and replace text
+/// - [`Delete`](Command::Delete): Remove text
+/// - [`Apply`](Command::Apply): Apply patches from JSON
 #[derive(Facet)]
 #[repr(u8)]
 #[allow(dead_code)] // Variants constructed by Facet macro
@@ -20,16 +32,31 @@ pub enum Command {
     Apply(ApplyArgs),
 }
 
+/// Top-level CLI arguments structure.
+///
+/// Captures the command to execute and any global flags like `--help`.
 #[derive(Facet)]
 pub struct Args {
+    /// The command to execute (replace, delete, or apply)
     #[facet(positional)]
     pub command: Command,
 
-    /// Show help
+    /// Show help message
     #[facet(named, short = 'h')]
     pub help: bool,
 }
 
+/// Print comprehensive usage information to stdout.
+///
+/// Displays the command structure, available options, and usage examples
+/// for all textum commands. Called when the user provides `--help` or
+/// when argument parsing fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// textum::cli::args::print_usage();
+/// ```
 pub fn print_usage() {
     println!("Usage: textum <COMMAND> [OPTIONS]");
     println!();

@@ -1,5 +1,30 @@
+//! Argument definitions for the replace command.
+
 use facet::Facet;
 
+/// Arguments for the `replace` command.
+///
+/// The replace command finds text (literal or pattern) and replaces it with new content.
+/// Supports various targeting modes including literal matching, regex patterns, line ranges,
+/// and between-marker selection.
+///
+/// # Examples
+///
+/// Replace literal text:
+/// ```bash
+/// textum replace "old" "new" file.txt
+/// ```
+///
+/// Replace using regex:
+/// ```bash
+/// textum replace --pattern "fn \w+\(" "pub fn main(" src/*.rs
+/// ```
+///
+/// Replace between markers:
+/// ```bash
+/// textum replace "<!-- start -->" "content" --until "<!-- end -->" README.md
+/// ```
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Facet)]
 pub struct ReplaceArgs {
     /// Text or pattern to find
@@ -20,14 +45,23 @@ pub struct ReplaceArgs {
     pub pattern: bool,
 
     /// Line range (e.g., "5:10" for lines 5-10)
+    ///
+    /// When specified, operates on the given line range instead of searching for the target.
+    /// The range is inclusive of the start line and exclusive of the end line.
     #[facet(named)]
     pub lines: Option<String>,
 
     /// Replace until another marker
+    ///
+    /// When specified, replaces content between the target and this end marker.
+    /// Use with `--include-markers` to control boundary inclusion.
     #[facet(named)]
     pub until: Option<String>,
 
     /// Exclude boundaries when using --until (default: exclude)
+    ///
+    /// When true, includes the target and end markers in the replacement.
+    /// When false (default), only replaces content between markers.
     #[facet(named)]
     pub include_markers: bool,
 
@@ -36,6 +70,8 @@ pub struct ReplaceArgs {
     pub dry_run: bool,
 
     /// Show diff of changes
+    ///
+    /// Implies `--dry-run`. Displays a unified diff showing what would change.
     #[facet(named, short = 'd')]
     pub diff: bool,
 

@@ -1,3 +1,5 @@
+//! Handler for the replace command.
+
 use std::fs;
 use std::io;
 use textum::{Patch, PatchSet};
@@ -6,8 +8,36 @@ use crate::args::ReplaceArgs;
 use crate::diff::print_diff;
 use crate::utils::create_snippet_from_replace_args;
 
-pub fn handle_replace(args: ReplaceArgs) -> io::Result<()> {
-    let snippet = create_snippet_from_replace_args(&args)
+/// Execute the replace command with the given arguments.
+///
+/// This handler:
+/// 1. Converts CLI arguments to a snippet
+/// 2. Creates patches for each target file
+/// 3. Applies patches (or shows preview if dry-run)
+/// 4. Writes results to disk (unless dry-run)
+///
+/// # Arguments
+///
+/// * `args` - Replace command arguments parsed from CLI
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success.
+///
+/// # Errors
+///
+/// Returns an [`io::Error`] if:
+/// - Snippet creation fails (invalid arguments)
+/// - File I/O fails
+/// - Patch application fails
+///
+/// The process will exit with status 1 if patch application fails.
+///
+/// # Examples
+///
+/// This function is called by the CLI router and not typically invoked directly.
+pub fn handle_replace(args: &ReplaceArgs) -> io::Result<()> {
+    let snippet = create_snippet_from_replace_args(args)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let mut set = PatchSet::new();

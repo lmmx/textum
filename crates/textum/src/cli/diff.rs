@@ -1,3 +1,9 @@
+//! Unified diff output formatting.
+//!
+//! This module provides functionality for displaying changes in a human-readable
+//! unified diff format with ANSI color highlighting. The output is similar to
+//! `git diff` and uses context lines to show changes in their surrounding code.
+
 use std::io::{self, Write};
 
 /// Print a diff-style view of changes for a single file.

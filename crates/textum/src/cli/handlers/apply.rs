@@ -1,3 +1,5 @@
+//! Handler for the apply command.
+
 use std::fs;
 use std::io::{self, Read};
 use textum::{Patch, PatchSet};
@@ -5,9 +7,38 @@ use textum::{Patch, PatchSet};
 use crate::args::ApplyArgs;
 use crate::diff::print_diff;
 
-pub fn handle_apply(args: ApplyArgs) -> io::Result<()> {
-    let input = if let Some(path) = args.patch_file {
-        fs::read_to_string(&path)?
+/// Execute the apply command with the given arguments.
+///
+/// This handler:
+/// 1. Reads patch JSON from file or stdin
+/// 2. Deserializes patches using facet-json
+/// 3. Applies patches (or shows preview if dry-run)
+/// 4. Writes results to disk (unless dry-run)
+///
+/// # Arguments
+///
+/// * `args` - Apply command arguments parsed from CLI
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success.
+///
+/// # Errors
+///
+/// Returns an [`io::Error`] if:
+/// - Input file cannot be read
+/// - JSON deserialization fails
+/// - File I/O fails
+/// - Patch application fails
+///
+/// The process will exit with status 1 if JSON parsing or patch application fails.
+///
+/// # Examples
+///
+/// This function is called by the CLI router and not typically invoked directly.
+pub fn handle_apply(args: &ApplyArgs) -> io::Result<()> {
+    let input = if let Some(path) = &args.patch_file {
+        fs::read_to_string(path)?
     } else {
         let mut buf = String::new();
         io::stdin().read_to_string(&mut buf)?;
