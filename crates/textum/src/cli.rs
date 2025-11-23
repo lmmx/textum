@@ -104,27 +104,41 @@ pub mod inner {
         }
 
         // Apply patches
-        match set.apply_to_files() {
-            Ok(results) => {
-                for (file, content) in results {
-                    if args.dry_run {
+        if args.dry_run {
+            // Use apply_to_files to inspect without writing
+            match set.apply_to_files() {
+                Ok(results) => {
+                    for (file, content) in &results {
                         eprintln!("Would patch: {file}");
                         if args.verbose {
                             println!("=== {file} ===\n{content}");
                         }
-                    } else {
-                        fs::write(&file, content)?;
-                        eprintln!("Patched: {file}");
+                    }
+
+                    if !args.verbose {
+                        eprintln!(
+                            "Dry run complete ({} file(s)). Use -v to see changes.",
+                            results.len()
+                        );
                     }
                 }
-
-                if args.dry_run && !args.verbose {
-                    eprintln!("Dry run complete. Use -v to see changes.");
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    std::process::exit(1);
                 }
             }
-            Err(e) => {
-                eprintln!("Error: {e}");
-                std::process::exit(1);
+        } else {
+            // Use write_to_files for direct persistence
+            match set.write_to_files() {
+                Ok(()) => {
+                    if args.verbose {
+                        eprintln!("Successfully patched {} file(s)", set.len());
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    std::process::exit(1);
+                }
             }
         }
 

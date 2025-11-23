@@ -40,7 +40,7 @@ use std::collections::HashMap;
 /// ```
 pub struct PatchSet {
     /// The patches in this set.
-    patches: Vec<Patch>,
+    pub patches: Vec<Patch>,
 }
 
 impl PatchSet {
@@ -58,6 +58,18 @@ impl PatchSet {
         Self {
             patches: Vec::new(),
         }
+    }
+
+    /// Returns the number of patches in the set.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.patches.len()
+    }
+
+    /// Returns true if the set contains no patches.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.patches.is_empty()
     }
 
     /// Add a patch to this set.
