@@ -82,7 +82,7 @@ fn replace_line_range() {
         .args([
             "replace",
             "dummy", // Not used when --lines is specified
-            "REPLACED",
+            "REPLACED\n",
             "--lines",
             "1:3",
             file.to_str().unwrap(),

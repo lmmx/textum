@@ -24,7 +24,7 @@ fn delete_commented_code_blocks() {
     cargo_bin_cmd!("textum")
         .args([
             "delete",
-            "// BEGIN DEBUG\n",
+            "    // BEGIN DEBUG\n",
             "--until",
             "// END DEBUG\n",
             "--include-markers",
