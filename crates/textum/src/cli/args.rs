@@ -4,8 +4,6 @@
 //! including replace, delete, and apply operations. Each command has its
 //! own argument type with appropriate flags and options.
 
-use facet::Facet;
-
 pub mod apply;
 pub mod delete;
 pub mod replace;
@@ -13,16 +11,6 @@ pub mod replace;
 pub use apply::ApplyArgs;
 pub use delete::DeleteArgs;
 pub use replace::ReplaceArgs;
-
-/// Top-level CLI arguments structure.
-///
-/// Captures the raw command arguments for manual routing.
-#[derive(Facet)]
-pub struct Args {
-    /// Raw command-line arguments for manual routing
-    #[facet(positional)]
-    pub args: Vec<String>,
-}
 
 /// Parsed command after manual routing.
 pub enum Command {

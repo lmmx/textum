@@ -8,7 +8,7 @@ pub mod diff;
 pub mod handlers;
 pub mod utils;
 
-use args::{Args, Command};
+use args::Command;
 use std::io;
 
 /// Entry point for the textum command-line interface.
@@ -32,52 +32,47 @@ use std::io;
 /// # }
 /// ```
 pub fn main() -> io::Result<()> {
-    // Check for help flag before facet parsing
-    let std_args: Vec<String> = std::env::args().collect();
-    if std_args.iter().any(|arg| arg == "-h" || arg == "--help") {
+    // Get raw args
+    let all_args: Vec<String> = std::env::args().collect();
+
+    // Check for help flag
+    if all_args.iter().any(|arg| arg == "-h" || arg == "--help") {
         args::print_usage();
         return Ok(());
     }
 
-    let args: Args = match facet_args::from_std_args() {
-        Ok(args) => args,
-        Err(e) => {
-            eprintln!("Error: {e}");
-            args::print_usage();
-            std::process::exit(1);
-        }
-    };
-
-    // Parse command manually
-    if args.args.is_empty() {
+    // Need at least program name + command
+    if all_args.len() < 2 {
         eprintln!("Error: No command specified");
         args::print_usage();
         std::process::exit(1);
     }
 
-    let command_name = &args.args[0];
+    let command_name = &all_args[1];
 
-    // Build argument slice for re-parsing WITHOUT the subcommand name
-    // Just: ["textum", ...remaining args after subcommand]
-    let mut command_args: Vec<String> = vec!["textum".to_string()];
-    command_args.extend(args.args[1..].iter().cloned());
+    // Prepare args for facet parsing of subcommand
+    // facet expects: [program_name, ...subcommand_args]
+    let subcommand_args: Vec<String> = std::iter::once(all_args[0].clone())
+        .chain(all_args[2..].iter().cloned())
+        .collect();
 
-    // Convert to Vec<&str> for from_slice
-    let command_args_strs: Vec<&str> = command_args.iter().map(|s| s.as_str()).collect();
+    let subcommand_args_strs: Vec<&str> = subcommand_args.iter().map(|s| s.as_str()).collect();
 
     let command = match command_name.as_str() {
         "replace" => {
-            let replace_args: args::ReplaceArgs = match facet_args::from_slice(&command_args_strs) {
-                Ok(args) => args,
-                Err(e) => {
-                    eprintln!("Error: {e}");
-                    std::process::exit(1);
-                }
-            };
+            let replace_args: args::ReplaceArgs =
+                match facet_args::from_slice(&subcommand_args_strs) {
+                    Ok(args) => args,
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        std::process::exit(1);
+                    }
+                };
             Command::Replace(replace_args)
         }
         "delete" => {
-            let delete_args: args::DeleteArgs = match facet_args::from_slice(&command_args_strs) {
+            let delete_args: args::DeleteArgs = match facet_args::from_slice(&subcommand_args_strs)
+            {
                 Ok(args) => args,
                 Err(e) => {
                     eprintln!("Error: {e}");
@@ -87,7 +82,7 @@ pub fn main() -> io::Result<()> {
             Command::Delete(delete_args)
         }
         "apply" => {
-            let apply_args: args::ApplyArgs = match facet_args::from_slice(&command_args_strs) {
+            let apply_args: args::ApplyArgs = match facet_args::from_slice(&subcommand_args_strs) {
                 Ok(args) => args,
                 Err(e) => {
                     eprintln!("Error: {e}");
