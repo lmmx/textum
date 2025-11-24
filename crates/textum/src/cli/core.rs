@@ -59,30 +59,22 @@ pub fn main() -> io::Result<()> {
 
     let command_name = &all_args[1];
 
-    // Prepare args for facet parsing of subcommand
-    // facet expects: [program_name, ...subcommand_args]
-    let subcommand_args: Vec<String> = std::iter::once(all_args[0].clone())
-        .chain(all_args[2..].iter().cloned())
-        .collect();
-
-    let subcommand_args_strs: Vec<&str> = subcommand_args.iter().map(|s| s.as_str()).collect();
+    // Prepare args for facet parsing: JUST the subcommand args, NO program name
+    let subcommand_args: Vec<&str> = all_args[2..].iter().map(|s| s.as_str()).collect();
 
     let command = match command_name.as_str() {
         "replace" => {
-            let replace_args: args::ReplaceArgs =
-                match facet_args::from_slice(&subcommand_args_strs) {
-                    Ok(args) => args,
-                    Err(e) => {
-                        // With the handler installed, this will show nice diagnostics
-                        eprintln!("{}", report::DiagnosticDisplay(&e));
-                        std::process::exit(1);
-                    }
-                };
+            let replace_args: args::ReplaceArgs = match facet_args::from_slice(&subcommand_args) {
+                Ok(args) => args,
+                Err(e) => {
+                    eprintln!("{}", report::DiagnosticDisplay(&e));
+                    std::process::exit(1);
+                }
+            };
             Command::Replace(replace_args)
         }
         "delete" => {
-            let delete_args: args::DeleteArgs = match facet_args::from_slice(&subcommand_args_strs)
-            {
+            let delete_args: args::DeleteArgs = match facet_args::from_slice(&subcommand_args) {
                 Ok(args) => args,
                 Err(e) => {
                     eprintln!("{}", report::DiagnosticDisplay(&e));
@@ -92,7 +84,7 @@ pub fn main() -> io::Result<()> {
             Command::Delete(delete_args)
         }
         "apply" => {
-            let apply_args: args::ApplyArgs = match facet_args::from_slice(&subcommand_args_strs) {
+            let apply_args: args::ApplyArgs = match facet_args::from_slice(&subcommand_args) {
                 Ok(args) => args,
                 Err(e) => {
                     eprintln!("{}", report::DiagnosticDisplay(&e));

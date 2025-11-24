@@ -45,20 +45,20 @@ use facet::Facet;
 #[derive(Facet)]
 pub struct ApplyArgs {
     /// Path to JSON file (reads from stdin if not provided)
-    #[facet(positional)] // REMOVED: default
+    #[facet(positional, default)]
     pub patch_file: Option<String>,
 
     /// Preview changes
-    #[facet(named, short = 'n')]
+    #[facet(named, short = 'n', default)]
     pub dry_run: bool,
 
     /// Show diff
     ///
     /// Implies `--dry-run`. Displays a unified diff showing what would change.
-    #[facet(named, short = 'd')]
+    #[facet(named, short = 'd', default)]
     pub diff: bool,
 
     /// Verbose output
-    #[facet(named, short = 'v')]
+    #[facet(named, short = 'v', default)]
     pub verbose: bool,
 }

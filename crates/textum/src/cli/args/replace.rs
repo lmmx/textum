@@ -40,7 +40,7 @@ pub struct ReplaceArgs {
     pub files: Vec<String>,
 
     /// Use regex pattern matching
-    #[facet(named)]
+    #[facet(named, default)]
     #[cfg(feature = "regex")]
     pub pattern: bool,
 
@@ -48,34 +48,34 @@ pub struct ReplaceArgs {
     ///
     /// When specified, operates on the given line range instead of searching for the target.
     /// The range is inclusive of the start line and exclusive of the end line.
-    #[facet(named)]
+    #[facet(named, default)]
     pub lines: Option<String>,
 
     /// Replace until another marker
     ///
     /// When specified, replaces content between the target and this end marker.
     /// Use with `--include-markers` to control boundary inclusion.
-    #[facet(named)]
+    #[facet(named, default)]
     pub until: Option<String>,
 
     /// Exclude boundaries when using --until (default: exclude)
     ///
     /// When true, includes the target and end markers in the replacement.
     /// When false (default), only replaces content between markers.
-    #[facet(named)]
+    #[facet(named, default)]
     pub include_markers: bool,
 
     /// Preview changes without writing
-    #[facet(named, short = 'n')]
+    #[facet(named, short = 'n', default)]
     pub dry_run: bool,
 
     /// Show diff of changes
     ///
     /// Implies `--dry-run`. Displays a unified diff showing what would change.
-    #[facet(named, short = 'd')]
+    #[facet(named, short = 'd', default)]
     pub diff: bool,
 
     /// Verbose output
-    #[facet(named, short = 'v')]
+    #[facet(named, short = 'v', default)]
     pub verbose: bool,
 }
