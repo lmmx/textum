@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0](https://github.com/lmmx/textum/compare/textum-v0.0.0...textum-v0.3.0) - 2025-11-04
+## [0.4.0](https://github.com/lmmx/textum/compare/textum-v0.0.0...textum-v0.4.0) - 2025-11-04
 
 ### <!-- 4 -->Documentation
 
