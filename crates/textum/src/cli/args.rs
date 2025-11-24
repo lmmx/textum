@@ -14,15 +14,17 @@ pub use apply::ApplyArgs;
 pub use delete::DeleteArgs;
 pub use replace::ReplaceArgs;
 
-/// Top-level command enumeration for the textum CLI.
+/// Top-level CLI arguments structure.
 ///
-/// Each variant corresponds to a major operation mode:
-/// - [`Replace`](Command::Replace): Find and replace text
-/// - [`Delete`](Command::Delete): Remove text
-/// - [`Apply`](Command::Apply): Apply patches from JSON
+/// Captures the raw command arguments for manual routing.
 #[derive(Facet)]
-#[repr(u8)]
-#[allow(dead_code)] // Variants constructed by Facet macro
+pub struct Args {
+    /// Raw command-line arguments for manual routing
+    #[facet(positional)]
+    pub args: Vec<String>,
+}
+
+/// Parsed command after manual routing.
 pub enum Command {
     /// Replace text in files
     Replace(ReplaceArgs),
@@ -30,20 +32,6 @@ pub enum Command {
     Delete(DeleteArgs),
     /// Apply patches from JSON
     Apply(ApplyArgs),
-}
-
-/// Top-level CLI arguments structure.
-///
-/// Captures the command to execute and any global flags like `--help`.
-#[derive(Facet)]
-pub struct Args {
-    /// The command to execute (replace, delete, or apply)
-    #[facet(positional)]
-    pub command: Command,
-
-    /// Show help message
-    #[facet(named, short = 'h')]
-    pub help: bool,
 }
 
 /// Print comprehensive usage information to stdout.
