@@ -9,21 +9,21 @@ fn readme_update_between_comment_markers() {
     let temp = TempDir::new().unwrap();
     let file = temp.path().join("README.md");
 
-    let original = r#"# Project
+    let original = r"# Project
 
 <!-- stats -->
 Old statistics here
 <!-- /stats -->
 
 ## Details
-"#;
+";
 
     fs::write(&file, original).unwrap();
 
     let new_stats = "**Lines:** 1,234\n**Files:** 56";
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "<!-- stats -->",
             new_stats,
@@ -49,7 +49,7 @@ fn batch_rename_across_multiple_files() {
     fs::write(&file2, "pub fn old_function() -> u32 { 0 }\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "old_function",
             "new_function",
@@ -119,7 +119,7 @@ version = "0.1.0"
     fs::write(&file, content).unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             r#"version = "\d+\.\d+\.\d+""#,
             r#"version = "1.0.0""#,

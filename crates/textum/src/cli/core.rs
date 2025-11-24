@@ -34,12 +34,8 @@ use std::io;
 /// ```
 pub fn main() -> io::Result<()> {
     // Install miette handler for pretty diagnostics
-    report::install_handler().map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
-            format!("Failed to install error handler: {e}"),
-        )
-    })?;
+    report::install_handler()
+        .map_err(|e| io::Error::other(format!("Failed to install error handler: {e}")))?;
 
     // Get raw args
     let all_args: Vec<String> = std::env::args().collect();
@@ -60,7 +56,10 @@ pub fn main() -> io::Result<()> {
     let command_name = &all_args[1];
 
     // Prepare args for facet parsing: JUST the subcommand args, NO program name
-    let subcommand_args: Vec<&str> = all_args[2..].iter().map(|s| s.as_str()).collect();
+    let subcommand_args: Vec<&str> = all_args[2..]
+        .iter()
+        .map(std::string::String::as_str)
+        .collect();
 
     let command = match command_name.as_str() {
         "replace" => {

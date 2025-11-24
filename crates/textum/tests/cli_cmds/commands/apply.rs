@@ -20,7 +20,7 @@ fn apply_json_from_file() {
     fs::write(&patch_file, json).unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["apply", patch_file.to_str().unwrap()])
+        .args(["apply", patch_file.to_str().unwrap()])
         .assert()
         .success();
 

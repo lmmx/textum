@@ -49,7 +49,7 @@ pub fn install_handler() -> Result<(), Box<dyn std::error::Error>> {
 /// ```
 pub struct DiagnosticDisplay<'a>(pub &'a dyn miette::Diagnostic);
 
-impl<'a> fmt::Display for DiagnosticDisplay<'a> {
+impl fmt::Display for DiagnosticDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let reporter = GraphicalReportHandler::new_themed(GraphicalTheme::unicode_nocolor());
         reporter.debug(self.0, f)?;

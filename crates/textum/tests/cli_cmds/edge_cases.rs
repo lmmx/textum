@@ -8,7 +8,7 @@ use tempfile::TempDir;
 #[test]
 fn error_file_not_found() {
     cargo_bin_cmd!("textum")
-        .args(&["replace", "old", "new", "/nonexistent/file.txt"])
+        .args(["replace", "old", "new", "/nonexistent/file.txt"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Error"));
@@ -21,7 +21,7 @@ fn error_target_not_found() {
     fs::write(&file, "hello world\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["replace", "nonexistent", "new", file.to_str().unwrap()])
+        .args(["replace", "nonexistent", "new", file.to_str().unwrap()])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Error"));
@@ -34,7 +34,7 @@ fn error_invalid_line_range_format() {
     fs::write(&file, "hello\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "dummy",
             "new",
@@ -54,7 +54,7 @@ fn error_line_range_out_of_bounds() {
     fs::write(&file, "line1\nline2\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "dummy",
             "new",
@@ -132,7 +132,7 @@ fn empty_file_literal_not_found() {
     fs::write(&file, "").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["replace", "something", "else", file.to_str().unwrap()])
+        .args(["replace", "something", "else", file.to_str().unwrap()])
         .assert()
         .failure();
 }
@@ -144,7 +144,7 @@ fn file_without_trailing_newline() {
     fs::write(&file, "hello world").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["replace", "world", "rust", file.to_str().unwrap()])
+        .args(["replace", "world", "rust", file.to_str().unwrap()])
         .assert()
         .success();
 
@@ -159,7 +159,7 @@ fn invalid_regex_pattern_error() {
     fs::write(&file, "test").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "[invalid",
             "replacement",

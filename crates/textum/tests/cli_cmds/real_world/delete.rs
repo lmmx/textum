@@ -22,7 +22,7 @@ fn delete_commented_code_blocks() {
     fs::write(&file, content).unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "delete",
             "// BEGIN DEBUG\n",
             "--until",
@@ -52,7 +52,7 @@ fn preserve_file_structure_line_operations() {
 
     // Delete middle sections
     cargo_bin_cmd!("textum")
-        .args(&["delete", "dummy", "--lines", "1:4", file.to_str().unwrap()])
+        .args(["delete", "dummy", "--lines", "1:4", file.to_str().unwrap()])
         .assert()
         .success();
 

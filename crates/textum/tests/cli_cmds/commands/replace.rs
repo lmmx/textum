@@ -12,7 +12,7 @@ fn replace_simple_literal() {
     fs::write(&file, "hello world\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["replace", "world", "rust", file.to_str().unwrap()])
+        .args(["replace", "world", "rust", file.to_str().unwrap()])
         .assert()
         .success();
 
@@ -30,7 +30,7 @@ fn replace_between_markers_exclude_boundaries() {
     .unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "<!-- start -->",
             "new content",
@@ -54,7 +54,7 @@ fn replace_between_markers_include_boundaries() {
     fs::write(&file, "before\n[START]content[END]\nafter\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "[START]",
             "REPLACED",
@@ -79,7 +79,7 @@ fn replace_line_range() {
     fs::write(&file, "line0\nline1\nline2\nline3\nline4\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "dummy", // Not used when --lines is specified
             "REPLACED",
@@ -105,7 +105,7 @@ fn replace_multiple_files() {
     fs::write(&file2, "hello world\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "world",
             "rust",
@@ -127,7 +127,7 @@ fn replace_dry_run_does_not_modify() {
     fs::write(&file, original).unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             "world",
             "rust",
@@ -148,7 +148,7 @@ fn replace_diff_shows_changes() {
     fs::write(&file, "hello world\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&["replace", "world", "rust", "--diff", file.to_str().unwrap()])
+        .args(["replace", "world", "rust", "--diff", file.to_str().unwrap()])
         .assert()
         .success()
         .stdout(predicate::str::contains("-hello world"))
@@ -166,7 +166,7 @@ fn replace_with_regex_pattern() {
     fs::write(&file, "fn foo() {}\nfn bar() {}\n").unwrap();
 
     cargo_bin_cmd!("textum")
-        .args(&[
+        .args([
             "replace",
             r"fn \w+\(",
             "pub fn main(",
