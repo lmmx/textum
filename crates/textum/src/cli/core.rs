@@ -6,6 +6,7 @@
 pub mod args;
 pub mod diff;
 pub mod handlers;
+pub mod report;
 pub mod utils;
 
 use args::Command;
@@ -32,6 +33,14 @@ use std::io;
 /// # }
 /// ```
 pub fn main() -> io::Result<()> {
+    // Install miette handler for pretty diagnostics
+    report::install_handler().map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to install error handler: {e}"),
+        )
+    })?;
+
     // Get raw args
     let all_args: Vec<String> = std::env::args().collect();
 
@@ -64,7 +73,8 @@ pub fn main() -> io::Result<()> {
                 match facet_args::from_slice(&subcommand_args_strs) {
                     Ok(args) => args,
                     Err(e) => {
-                        eprintln!("Error: {e}");
+                        // With the handler installed, this will show nice diagnostics
+                        eprintln!("{}", report::DiagnosticDisplay(&e));
                         std::process::exit(1);
                     }
                 };
@@ -75,7 +85,7 @@ pub fn main() -> io::Result<()> {
             {
                 Ok(args) => args,
                 Err(e) => {
-                    eprintln!("Error: {e}");
+                    eprintln!("{}", report::DiagnosticDisplay(&e));
                     std::process::exit(1);
                 }
             };
@@ -85,7 +95,7 @@ pub fn main() -> io::Result<()> {
             let apply_args: args::ApplyArgs = match facet_args::from_slice(&subcommand_args_strs) {
                 Ok(args) => args,
                 Err(e) => {
-                    eprintln!("Error: {e}");
+                    eprintln!("{}", report::DiagnosticDisplay(&e));
                     std::process::exit(1);
                 }
             };

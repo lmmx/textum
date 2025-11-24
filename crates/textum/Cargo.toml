@@ -15,6 +15,11 @@ facet = { optional = true, version = "0.30.0" }
 facet-args = { optional = true, version = "0.30.0" }
 facet-json = { optional = true, workspace = true }
 
+# -- CLI (facet-args diagnostics)
+miette = { default-features = false, features = [
+  "fancy",
+], optional = true, version = "7.6.0" }
+
 # -- Symbols
 tree-sitter = { optional = true, version = "0.24.0" }
 tree-sitter-rust = { optional = true, version = "0.24.0" }
@@ -63,8 +68,9 @@ symbol_path = []             # symbol_path field
 all-patch-fields = ["symbol_path"]
 
 # --- Dependency features
-cli = ["all-patch-fields", "dep:facet-args", "json", "regex"]
+cli = ["all-patch-fields", "facet-args", "json", "regex"]
 facet = ["dep:facet"]
+facet-args = ["dep:facet-args", "dep:miette"]
 json = ["dep:facet-json", "facet"]
 
 # --- Symbol paths

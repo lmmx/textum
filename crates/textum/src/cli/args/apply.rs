@@ -45,7 +45,7 @@ use facet::Facet;
 #[derive(Facet)]
 pub struct ApplyArgs {
     /// Path to JSON file (reads from stdin if not provided)
-    #[facet(positional, default)]
+    #[facet(positional)] // REMOVED: default
     pub patch_file: Option<String>,
 
     /// Preview changes
